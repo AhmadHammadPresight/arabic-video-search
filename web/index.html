@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>البحث في تسجيلات المراقبة · CCTV Search</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <h1>البحث الذكي في تسجيلات المراقبة</h1>
+      <p class="en" dir="ltr">Arabic CCTV search · proof of concept</p>
+    </div>
+    <div class="session">
+      <label>المستخدم <span class="en">Officer</span>
+        <input id="actor" type="text" maxlength="80" placeholder="الاسم / name" autocomplete="off">
+      </label>
+      <label>رقم القضية <span class="en">Case no.</span>
+        <input id="case-id" type="text" maxlength="80" placeholder="اختياري / optional" autocomplete="off">
+      </label>
+      <span id="health" class="health" title="">…</span>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="search" aria-selected="true">البحث <span class="en">Search</span></button>
+    <button role="tab" data-tab="recordings" aria-selected="false">التسجيلات <span class="en">Recordings</span></button>
+    <button role="tab" data-tab="audit" aria-selected="false">سجل التدقيق <span class="en">Audit log</span></button>
+  </nav>
+
+  <main>
+    <section id="tab-search" class="panel">
+      <form id="search-form" class="search-form">
+        <label class="query-label" for="query">صف الشخص أو الغرض <span class="en">Describe the person or object</span></label>
+        <div class="query-row">
+          <input id="query" name="query" type="search" dir="auto" maxlength="500" required
+                 placeholder="مثال: رجل يرتدي قميص أحمر" autocomplete="off">
+          <button type="submit" class="primary">ابحث <span class="en">Search</span></button>
+        </div>
+        <div id="examples" class="examples" aria-label="أمثلة / examples"></div>
+        <details class="filters" open>
+          <summary>تصفية <span class="en">Filters</span></summary>
+          <div class="filter-grid">
+            <fieldset>
+              <legend>الكاميرات <span class="en">Cameras</span></legend>
+              <div id="camera-filter" class="camera-filter"><span class="muted">لا توجد كاميرات بعد · no cameras yet</span></div>
+            </fieldset>
+            <fieldset>
+              <legend>الفترة الزمنية <span class="en">Time window</span></legend>
+              <label>من <span class="en">From</span> <input id="time-from" type="datetime-local" step="1"></label>
+              <label>إلى <span class="en">To</span> <input id="time-to" type="datetime-local" step="1"></label>
+            </fieldset>
+          </div>
+        </details>
+      </form>
+      <p id="search-status" class="status" role="status"></p>
+      <div id="results" class="results"></div>
+    </section>
+
+    <section id="tab-recordings" class="panel" hidden>
+      <form id="upload-form" class="upload-form">
+        <h2>رفع تسجيل <span class="en">Upload a recording</span></h2>
+        <div class="upload-grid">
+          <label>ملف الفيديو <span class="en">Video file</span>
+            <input name="file" type="file" accept="video/*,.avi,.mpg,.mpeg,.mkv,.ts" required>
+          </label>
+          <label>رقم الكاميرا <span class="en">Camera ID</span>
+            <input name="camera_id" type="text" dir="ltr" required pattern="[A-Za-z0-9_.\-]{1,40}" placeholder="G421">
+          </label>
+          <label>المكان <span class="en">Place</span>
+            <input name="place" type="text" dir="auto" required maxlength="200" placeholder="مثال: صالة الانتظار / waiting room">
+          </label>
+          <label>وقت بداية التسجيل <span class="en">Recording start (camera local time)</span>
+            <input name="start_time" type="datetime-local" step="1" required>
+          </label>
+        </div>
+        <div class="upload-actions">
+          <button type="submit" class="primary">رفع وفهرسة <span class="en">Upload and index</span></button>
+          <progress id="upload-progress" max="1" value="0" hidden></progress>
+          <span id="upload-status" class="status" role="status"></span>
+        </div>
+      </form>
+      <h2>التسجيلات <span class="en">Recordings</span></h2>
+      <div class="table-wrap">
+        <table class="recordings">
+          <thead><tr>
+            <th>الكاميرا <span class="en">Camera</span></th>
+            <th>المكان <span class="en">Place</span></th>
+            <th>البداية <span class="en">Start</span></th>
+            <th>المدة <span class="en">Length</span></th>
+            <th>الحالة <span class="en">Status</span></th>
+            <th>المسارات <span class="en">Tracks</span></th>
+            <th></th>
+          </tr></thead>
+          <tbody id="recordings-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tab-audit" class="panel" hidden>
+      <div class="audit-head">
+        <h2>سجل التدقيق <span class="en">Audit log</span></h2>
+        <button id="audit-refresh" type="button">تحديث <span class="en">Refresh</span></button>
+      </div>
+      <p class="muted">كل بحث وتأكيد ورفض يُسجَّل هنا ولا يمكن تعديله أو حذفه. <span class="en">Every search, confirm and reject is recorded here and cannot be edited or deleted.</span></p>
+      <div class="table-wrap">
+        <table class="audit">
+          <thead><tr>
+            <th>#</th>
+            <th>الوقت <span class="en">Time (UTC)</span></th>
+            <th>المستخدم <span class="en">Officer</span></th>
+            <th>الإجراء <span class="en">Action</span></th>
+            <th>التفاصيل <span class="en">Details</span></th>
+          </tr></thead>
+          <tbody id="audit-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <template id="result-card">
+    <article class="card">
+      <div class="media">
+        <img class="crop" alt="أفضل لقطة · best crop" loading="lazy">
+        <div class="player">
+          <video muted playsinline preload="metadata"></video>
+          <span class="rank"></span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-line"><strong class="camera"></strong><span class="label-badge"></span><span class="score" dir="ltr"></span></div>
+        <div class="place"></div>
+        <div class="time" dir="ltr"></div>
+        <div class="verdict">
+          <button type="button" class="confirm">✓ تأكيد <span class="en">Confirm</span></button>
+          <button type="button" class="reject">✗ رفض <span class="en">Reject</span></button>
+        </div>
+      </div>
+    </article>
+  </template>
+</body>
+</html>

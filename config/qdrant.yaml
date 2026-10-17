@@ -1,0 +1,11 @@
+# Qdrant for the PoC: local storage under data/qdrant, loopback only, no telemetry.
+# scripts/start.sh runs qdrant from data/qdrant, so these paths are relative to it.
+log_level: INFO
+storage:
+  storage_path: ./storage
+  snapshots_path: ./snapshots
+service:
+  host: 127.0.0.1
+  http_port: 6433
+  grpc_port: 6434
+telemetry_disabled: true

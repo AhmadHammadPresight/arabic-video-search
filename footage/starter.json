@@ -1,0 +1,197 @@
+{
+  "description": "Public starter footage for the PoC. scripts/fetch_footage.sh downloads each source file, trims it, and writes data/footage/ATTRIBUTION.md. Camera times are each site's local wall-clock time; for CAVIAR and NVIDIA the date and time are illustrative because the sources carry none.",
+  "sources": {
+    "meva": {
+      "name": "MEVA (Multiview Extended Video with Activities)",
+      "licence": "CC BY 4.0",
+      "licence_url": "https://mevadata.org/resources/MEVA-data-license.txt",
+      "attribution": "\"Multiview Extended Video with Activities\" (MEVA) dataset by Kitware Inc. and the Intelligence Advanced Research Projects Activity (IARPA), licensed under CC BY 4.0 (http://creativecommons.org/licenses/by/4.0/). Clips were trimmed and re-encoded without audio.",
+      "home": "https://mevadata.org/"
+    },
+    "caviar": {
+      "name": "CAVIAR test case scenarios",
+      "licence": "Creative Commons BY-SA (version not stated by the source)",
+      "licence_url": "https://homepages.inf.ed.ac.uk/rbf/CAVIARDATA1/",
+      "attribution": "Data from the EC Funded CAVIAR project/IST 2001 37540, found at http://homepages.inf.ed.ac.uk/rbf/CAVIAR/ . Re-encoded to H.264 without changes to the picture; share-alike applies to these copies.",
+      "home": "http://homepages.inf.ed.ac.uk/rbf/CAVIAR/"
+    },
+    "nvidia": {
+      "name": "NVIDIA PhysicalAI-SmartSpaces (synthetic, MTMC_Tracking_2024)",
+      "licence": "CC BY 4.0",
+      "licence_url": "https://huggingface.co/datasets/nvidia/PhysicalAI-SmartSpaces",
+      "attribution": "Physical AI Smart Spaces dataset by NVIDIA, licensed under CC BY 4.0. Synthetic people generated with Omniverse. Clips were trimmed and re-encoded without audio.",
+      "home": "https://huggingface.co/datasets/nvidia/PhysicalAI-SmartSpaces"
+    },
+    "pexels": {
+      "name": "Pexels",
+      "licence": "Pexels License",
+      "licence_url": "https://www.pexels.com/license/",
+      "attribution": "Stock video from Pexels; credit is not required by the Pexels License but is given here. Identifiable people may not appear in a bad light, so these clips are only ever used for neutral searches and never as a suspect or in a demo story.",
+      "home": "https://www.pexels.com/"
+    }
+  },
+  "clips": [
+    {
+      "id": "meva-g421-cafe",
+      "source": "meva",
+      "url": "https://mevadata-public-01.s3.amazonaws.com/drops-123-r13/2018-03-15/14/2018-03-15.14-50-00.14-55-00.school.G421.r13.avi",
+      "bytes": 142880030,
+      "trim_start": 150,
+      "trim_duration": 130,
+      "camera_id": "G421",
+      "place": "مقهى ردهة المبنى · School building cafe",
+      "start_time": "2018-03-15T14:52:30",
+      "stories": ["suspect", "left-bag"],
+      "use": "demo",
+      "notes": "Busy indoor cafe; the two labelled bag thefts of the public MEVA annotations happen at about 1:08 and 1:48 into this trim."
+    },
+    {
+      "id": "meva-g420-stairs",
+      "source": "meva",
+      "url": "https://mevadata-public-01.s3.amazonaws.com/drops-123-r13/2018-03-15/14/2018-03-15.14-50-01.14-55-01.school.G420.r13.avi",
+      "bytes": 66614110,
+      "trim_start": 30,
+      "trim_duration": 150,
+      "camera_id": "G420",
+      "place": "درج ومدخل جانبي · School stairwell doors",
+      "start_time": "2018-03-15T14:50:31",
+      "stories": ["suspect"],
+      "use": "demo",
+      "notes": "Quiet camera next to the cafe; a few people pass through the doors."
+    },
+    {
+      "id": "meva-g638-entrance",
+      "source": "meva",
+      "url": "https://mevadata-public-01.s3.amazonaws.com/drops-123-r13/2018-03-15/14/2018-03-15.14-50-00.14-55-00.school.G638.r13.avi",
+      "bytes": 190112066,
+      "trim_start": 150,
+      "trim_duration": 130,
+      "camera_id": "G638",
+      "place": "ساحة مدخل المبنى · School entrance plaza (outdoor)",
+      "start_time": "2018-03-15T14:52:30",
+      "stories": ["suspect"],
+      "use": "demo",
+      "notes": "Outdoor courtyard in the same 5-minute window as G421 and G420."
+    },
+    {
+      "id": "meva-g331-waiting-0307",
+      "source": "meva",
+      "url": "https://mevadata-public-01.s3.amazonaws.com/drops-123-r13/2018-03-07/17/2018-03-07.17-00-00.17-05-00.bus.G331.r13.avi",
+      "bytes": 126830884,
+      "trim_start": 0,
+      "trim_duration": null,
+      "camera_id": "G331",
+      "place": "صالة انتظار محطة الحافلات · Bus station waiting room",
+      "start_time": "2018-03-07T17:00:00",
+      "stories": ["suspect", "left-bag"],
+      "use": "demo",
+      "notes": "Whole 5-minute file: the captain's own test queries describe people across all of it. Many bag put-downs and pick-ups, suitcases on wheels."
+    },
+    {
+      "id": "meva-g331-waiting-0315",
+      "source": "meva",
+      "url": "https://mevadata-public-01.s3.amazonaws.com/drops-123-r13/2018-03-15/15/2018-03-15.15-50-00.15-55-00.bus.G331.r13.avi",
+      "bytes": 77328300,
+      "trim_start": 40,
+      "trim_duration": 130,
+      "camera_id": "G331",
+      "place": "صالة انتظار محطة الحافلات · Bus station waiting room",
+      "start_time": "2018-03-15T15:50:40",
+      "stories": ["left-bag"],
+      "use": "demo",
+      "notes": "Same waiting room on another day; bags put down at about 0:19 and 0:40 into this trim."
+    },
+    {
+      "id": "caviar-leftbag-atchair",
+      "source": "caviar",
+      "url": "https://homepages.inf.ed.ac.uk/rbf/CAVIARDATA1/LeftBag_AtChair/LeftBag_AtChair.mpg",
+      "bytes": 12904113,
+      "trim_start": 0,
+      "trim_duration": null,
+      "camera_id": "CAVIAR-LOBBY",
+      "place": "ردهة مدخل مبنى · Building entrance lobby (CAVIAR)",
+      "start_time": "2018-03-16T10:00:00",
+      "stories": ["left-bag"],
+      "use": "demo",
+      "notes": "A person leaves a bag at a chair. Low resolution (384x288)."
+    },
+    {
+      "id": "caviar-leftbag-pickedup",
+      "source": "caviar",
+      "url": "https://homepages.inf.ed.ac.uk/rbf/CAVIARDATA1/LeftBag_PickedUp/LeftBag_PickedUp.mpg",
+      "bytes": 15941701,
+      "trim_start": 0,
+      "trim_duration": null,
+      "camera_id": "CAVIAR-LOBBY",
+      "place": "ردهة مدخل مبنى · Building entrance lobby (CAVIAR)",
+      "start_time": "2018-03-16T10:05:00",
+      "stories": ["left-bag"],
+      "use": "demo",
+      "notes": "A bag is left and later picked up by someone else."
+    },
+    {
+      "id": "nvidia-071-c0644",
+      "source": "nvidia",
+      "url": "https://huggingface.co/datasets/nvidia/PhysicalAI-SmartSpaces/resolve/main/MTMC_Tracking_2024/test/scene_071/camera_0644/video.mp4",
+      "bytes": 187586728,
+      "trim_start": 30,
+      "trim_duration": 120,
+      "camera_id": "NV071-C0644",
+      "place": "متجر - قسم الثلاجات (مشهد اصطناعي) · Store, fridge aisle (synthetic)",
+      "start_time": "2018-03-16T16:00:30",
+      "stories": ["lost-child-stand-in"],
+      "use": "demo",
+      "notes": "Synthetic retail scene 071; the same synthetic people walk between cameras 0644 and 0647."
+    },
+    {
+      "id": "nvidia-071-c0647",
+      "source": "nvidia",
+      "url": "https://huggingface.co/datasets/nvidia/PhysicalAI-SmartSpaces/resolve/main/MTMC_Tracking_2024/test/scene_071/camera_0647/video.mp4",
+      "bytes": 271923441,
+      "trim_start": 30,
+      "trim_duration": 120,
+      "camera_id": "NV071-C0647",
+      "place": "متجر - صناديق الدفع (مشهد اصطناعي) · Store, checkouts (synthetic)",
+      "start_time": "2018-03-16T16:00:30",
+      "stories": ["lost-child-stand-in"],
+      "use": "demo",
+      "notes": "Synthetic retail scene 071, checkout aisles."
+    },
+    {
+      "id": "pexels-mall-high-angle",
+      "source": "pexels",
+      "url": "https://videos.pexels.com/video-files/15007111/15007111-uhd_3840_2160_31fps.mp4",
+      "page": "https://www.pexels.com/video/high-angle-view-of-a-crowded-shopping-mall-15007111/",
+      "bytes": 53628237,
+      "trim_start": 0,
+      "trim_duration": null,
+      "camera_id": "PX-MALL-1",
+      "place": "مركز تسوق مزدحم · Crowded shopping mall (stock)",
+      "start_time": "2018-03-16T18:00:00",
+      "stories": [],
+      "use": "neutral-only",
+      "notes": "High-angle stock clip by George Morina. Neutral searches only."
+    },
+    {
+      "id": "pexels-mall-corridor",
+      "source": "pexels",
+      "url": "https://videos.pexels.com/video-files/4750076/4750076-hd_1920_1080_25fps.mp4",
+      "page": "https://www.pexels.com/video/people-walking-inside-a-shopping-mall-4750076/",
+      "bytes": 8808444,
+      "trim_start": 0,
+      "trim_duration": null,
+      "camera_id": "PX-MALL-2",
+      "place": "ممر مركز تسوق · Shopping mall corridor (stock)",
+      "start_time": "2018-03-16T18:05:00",
+      "stories": [],
+      "use": "neutral-only",
+      "notes": "Elevated stock clip of a mall corridor. Neutral searches only."
+    }
+  ],
+  "left_out": [
+    {"source": "VIRAT", "reason": "No part of the data may go to third parties, so it cannot appear in a client demo."},
+    {"source": "Mixkit", "reason": "The Envato use policy bans using assets to train or improve AI."},
+    {"source": "Any CC BY-NC dataset", "reason": "Non-commercial licences are excluded for a commercial PoC."},
+    {"source": "PETS 2006/2007, i-LIDS, ABODA and other left-bag sets", "reason": "Licences do not allow this use (see the technical plan's D2 answer)."}
+  ]
+}

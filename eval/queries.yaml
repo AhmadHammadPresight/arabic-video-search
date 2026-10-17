@@ -1,0 +1,402 @@
+# Seeded evaluation set for the option A baseline (scripts/evaluate.sh runs it).
+#
+# Each query is searched through the API with its camera and time filters, the way an officer
+# narrows a search to the cameras and hours that matter. Within those filters every matching
+# person or bag was picked by eye from the indexed tracks (track contact sheets, not search
+# results), so precision counts every real match.
+#
+# Targets are written as anchors: a point on the target (camera, local time, x and y as
+# fractions of the frame), taken from a box centre at a sampled frame. A result track counts as
+# correct when one of its boxes contains an anchor within half a second. Anchors do not depend
+# on track ids, so they still hold after re-indexing with other settings.
+#
+# register: formal (Modern Standard Arabic), jordanian, gulf, or english (for comparison).
+# source: captain = written by the captain, verbatim; otherwise written for this set.
+# expect: no-match = nobody in the footage matches; reported but left out of the averages.
+#
+# Bags held by a target are separate tracks; a query about a person also accepts their bag
+# where the description names it.
+
+targets:
+  g331-0307-grey-jacket-woman:
+    description: Woman in a light grey jacket, beige check scarf and striped top, carrying a beige shoulder bag
+    anchors:
+      - {camera: G331, at: "2018-03-07T17:00:11.750", x: 0.643, y: 0.475}
+      - {camera: G331, at: "2018-03-07T17:01:16.500", x: 0.639, y: 0.478}
+      - {camera: G331, at: "2018-03-07T17:01:19.500", x: 0.709, y: 0.503}
+      - {camera: G331, at: "2018-03-07T17:01:40.750", x: 0.874, y: 0.447}
+      - {camera: G331, at: "2018-03-07T17:02:12.250", x: 0.853, y: 0.572}
+      - {camera: G331, at: "2018-03-07T17:02:28.750", x: 0.927, y: 0.506}
+  g331-0307-grey-jacket-woman-bag:
+    description: Her beige shoulder bag, tracked on its own
+    anchors:
+      - {camera: G331, at: "2018-03-07T17:00:00.250", x: 0.684, y: 0.434}
+      - {camera: G331, at: "2018-03-07T17:00:04.500", x: 0.684, y: 0.435}
+      - {camera: G331, at: "2018-03-07T17:00:31.750", x: 0.684, y: 0.435}
+      - {camera: G331, at: "2018-03-07T17:00:50", x: 0.685, y: 0.438}
+      - {camera: G331, at: "2018-03-07T17:01:01.500", x: 0.684, y: 0.433}
+      - {camera: G331, at: "2018-03-07T17:01:14.500", x: 0.685, y: 0.440}
+      - {camera: G331, at: "2018-03-07T17:01:27", x: 0.853, y: 0.400}
+      - {camera: G331, at: "2018-03-07T17:01:33.750", x: 0.832, y: 0.375}
+      - {camera: G331, at: "2018-03-07T17:01:41", x: 0.850, y: 0.377}
+      - {camera: G331, at: "2018-03-07T17:01:46.500", x: 0.675, y: 0.297}
+      - {camera: G331, at: "2018-03-07T17:01:47.250", x: 0.661, y: 0.312}
+      - {camera: G331, at: "2018-03-07T17:01:47.500", x: 0.649, y: 0.295}
+      - {camera: G331, at: "2018-03-07T17:02:22.250", x: 0.830, y: 0.459}
+      - {camera: G331, at: "2018-03-07T17:02:26.750", x: 0.839, y: 0.458}
+      - {camera: G331, at: "2018-03-07T17:02:29.250", x: 0.944, y: 0.403}
+  g331-0307-cream-jacket-woman:
+    description: Woman with long dark hair in a cream (off-white) puffer jacket and fluffy grey boots
+    anchors:
+      - {camera: G331, at: "2018-03-07T17:00:41.500", x: 0.139, y: 0.562}
+      - {camera: G331, at: "2018-03-07T17:00:43.500", x: 0.310, y: 0.468}
+      - {camera: G331, at: "2018-03-07T17:00:47.750", x: 0.543, y: 0.301}
+  g331-0307-tan-bag-woman:
+    description: Woman with curly hair carrying a large tan leather bag
+    anchors:
+      - {camera: G331, at: "2018-03-07T17:00:00.500", x: 0.385, y: 0.788}
+      - {camera: G331, at: "2018-03-07T17:00:04.750", x: 0.338, y: 0.732}
+      - {camera: G331, at: "2018-03-07T17:00:06", x: 0.180, y: 0.717}
+      - {camera: G331, at: "2018-03-07T17:00:00.250", x: 0.471, y: 0.780}
+      - {camera: G331, at: "2018-03-07T17:00:01.750", x: 0.471, y: 0.780}
+      - {camera: G331, at: "2018-03-07T17:00:04.500", x: 0.368, y: 0.785}
+      - {camera: G331, at: "2018-03-07T17:00:05.250", x: 0.213, y: 0.806}
+      - {camera: G331, at: "2018-03-07T17:00:06.500", x: 0.096, y: 0.763}
+      - {camera: G331, at: "2018-03-07T17:00:07.500", x: 0.019, y: 0.770}
+  g331-0307-cream-bag-woman:
+    description: Woman in a black jacket and glasses with a cream shoulder bag
+    anchors:
+      - {camera: G331, at: "2018-03-07T17:01:24.750", x: 0.843, y: 0.553}
+      - {camera: G331, at: "2018-03-07T17:01:27.500", x: 0.625, y: 0.745}
+      - {camera: G331, at: "2018-03-07T17:01:30.250", x: 0.184, y: 0.770}
+  g331-0307-red-jacket-women:
+    description: Women in red or burgundy jackets
+    anchors:
+      - {camera: G331, at: "2018-03-07T17:00:16", x: 0.222, y: 0.310}
+      - {camera: G331, at: "2018-03-07T17:00:20.750", x: 0.219, y: 0.314}
+      - {camera: G331, at: "2018-03-07T17:00:25.500", x: 0.209, y: 0.315}
+      - {camera: G331, at: "2018-03-07T17:00:18.250", x: 0.811, y: 0.322}
+      - {camera: G331, at: "2018-03-07T17:00:18.750", x: 0.813, y: 0.322}
+      - {camera: G331, at: "2018-03-07T17:00:22", x: 0.769, y: 0.310}
+      - {camera: G331, at: "2018-03-07T17:00:23.500", x: 0.526, y: 0.339}
+      - {camera: G331, at: "2018-03-07T17:00:24.500", x: 0.306, y: 0.327}
+      - {camera: G331, at: "2018-03-07T17:00:25", x: 0.255, y: 0.316}
+      - {camera: G331, at: "2018-03-07T17:00:37.250", x: 0.296, y: 0.470}
+      - {camera: G331, at: "2018-03-07T17:00:41.750", x: 0.263, y: 0.646}
+      - {camera: G331, at: "2018-03-07T17:00:43.750", x: 0.111, y: 0.720}
+      - {camera: G331, at: "2018-03-07T17:01:04.500", x: 0.270, y: 0.418}
+      - {camera: G331, at: "2018-03-07T17:01:06", x: 0.169, y: 0.542}
+      - {camera: G331, at: "2018-03-07T17:01:07.500", x: 0.107, y: 0.612}
+      - {camera: G331, at: "2018-03-07T17:02:07.250", x: 0.105, y: 0.672}
+      - {camera: G331, at: "2018-03-07T17:02:07.750", x: 0.142, y: 0.692}
+      - {camera: G331, at: "2018-03-07T17:02:09", x: 0.263, y: 0.751}
+      - {camera: G331, at: "2018-03-07T17:02:26.250", x: 0.789, y: 0.833}
+      - {camera: G331, at: "2018-03-07T17:02:29.500", x: 0.338, y: 0.790}
+      - {camera: G331, at: "2018-03-07T17:02:31.250", x: 0.083, y: 0.740}
+      - {camera: G331, at: "2018-03-07T17:03:42.750", x: 0.586, y: 0.371}
+      - {camera: G331, at: "2018-03-07T17:03:44", x: 0.568, y: 0.420}
+      - {camera: G331, at: "2018-03-07T17:03:51.500", x: 0.589, y: 0.530}
+      - {camera: G331, at: "2018-03-07T17:00:00.250", x: 0.450, y: 0.170}
+      - {camera: G331, at: "2018-03-07T17:00:01.250", x: 0.458, y: 0.222}
+      - {camera: G331, at: "2018-03-07T17:00:01.750", x: 0.470, y: 0.224}
+      - {camera: G331, at: "2018-03-07T17:00:06.750", x: 0.392, y: 0.365}
+      - {camera: G331, at: "2018-03-07T17:00:09.250", x: 0.200, y: 0.488}
+      - {camera: G331, at: "2018-03-07T17:00:10.500", x: 0.112, y: 0.579}
+  g331-0307-suitcase-men:
+    description: Men pulling wheeled suitcases
+    anchors:
+      - {camera: G331, at: "2018-03-07T17:00:51.750", x: 0.953, y: 0.335}
+      - {camera: G331, at: "2018-03-07T17:00:52.500", x: 0.930, y: 0.310}
+      - {camera: G331, at: "2018-03-07T17:00:57.250", x: 0.693, y: 0.215}
+      - {camera: G331, at: "2018-03-07T17:01:01.500", x: 0.551, y: 0.177}
+      - {camera: G331, at: "2018-03-07T17:01:04", x: 0.555, y: 0.169}
+      - {camera: G331, at: "2018-03-07T17:01:05.250", x: 0.554, y: 0.170}
+      - {camera: G331, at: "2018-03-07T17:01:01.250", x: 0.086, y: 0.678}
+      - {camera: G331, at: "2018-03-07T17:01:02", x: 0.154, y: 0.649}
+      - {camera: G331, at: "2018-03-07T17:01:09", x: 0.532, y: 0.306}
+      - {camera: G331, at: "2018-03-07T17:03:19.500", x: 0.907, y: 0.372}
+      - {camera: G331, at: "2018-03-07T17:03:20.250", x: 0.921, y: 0.374}
+      - {camera: G331, at: "2018-03-07T17:03:21.250", x: 0.920, y: 0.375}
+      - {camera: G331, at: "2018-03-07T17:04:19.500", x: 0.956, y: 0.431}
+      - {camera: G331, at: "2018-03-07T17:04:21", x: 0.956, y: 0.430}
+      - {camera: G331, at: "2018-03-07T17:04:23", x: 0.972, y: 0.421}
+  g331-0307-wheeled-suitcases:
+    description: Wheeled suitcases, tracked on their own
+    anchors:
+      - {camera: G331, at: "2018-03-07T17:00:49", x: 0.956, y: 0.447}
+      - {camera: G331, at: "2018-03-07T17:00:50.500", x: 0.945, y: 0.442}
+      - {camera: G331, at: "2018-03-07T17:00:51.500", x: 0.914, y: 0.412}
+      - {camera: G331, at: "2018-03-07T17:00:35", x: 0.201, y: 0.622}
+      - {camera: G331, at: "2018-03-07T17:00:35.250", x: 0.185, y: 0.647}
+      - {camera: G331, at: "2018-03-07T17:00:35.500", x: 0.182, y: 0.669}
+      - {camera: G331, at: "2018-03-07T17:00:37.750", x: 0.269, y: 0.777}
+      - {camera: G331, at: "2018-03-07T17:00:39.500", x: 0.209, y: 0.750}
+      - {camera: G331, at: "2018-03-07T17:00:40.500", x: 0.157, y: 0.782}
+      - {camera: G331, at: "2018-03-07T17:00:56.250", x: 0.711, y: 0.289}
+      - {camera: G331, at: "2018-03-07T17:00:56.750", x: 0.687, y: 0.274}
+      - {camera: G331, at: "2018-03-07T17:00:58.250", x: 0.621, y: 0.280}
+      - {camera: G331, at: "2018-03-07T17:01:02.750", x: 0.168, y: 0.796}
+      - {camera: G331, at: "2018-03-07T17:01:03.500", x: 0.243, y: 0.747}
+      - {camera: G331, at: "2018-03-07T17:01:06.500", x: 0.456, y: 0.501}
+      - {camera: G331, at: "2018-03-07T17:01:10.250", x: 0.611, y: 0.265}
+      - {camera: G331, at: "2018-03-07T17:01:11.250", x: 0.636, y: 0.263}
+      - {camera: G331, at: "2018-03-07T17:01:13.250", x: 0.725, y: 0.278}
+      - {camera: G331, at: "2018-03-07T17:01:17.500", x: 0.916, y: 0.348}
+      - {camera: G331, at: "2018-03-07T17:01:21", x: 0.922, y: 0.410}
+      - {camera: G331, at: "2018-03-07T17:01:22", x: 0.924, y: 0.410}
+      - {camera: G331, at: "2018-03-07T17:01:19.500", x: 0.927, y: 0.416}
+      - {camera: G331, at: "2018-03-07T17:01:48", x: 0.949, y: 0.452}
+      - {camera: G331, at: "2018-03-07T17:02:30", x: 0.939, y: 0.451}
+      - {camera: G331, at: "2018-03-07T17:02:02.750", x: 0.833, y: 0.486}
+      - {camera: G331, at: "2018-03-07T17:02:03.750", x: 0.835, y: 0.485}
+      - {camera: G331, at: "2018-03-07T17:02:06.750", x: 0.834, y: 0.488}
+      - {camera: G331, at: "2018-03-07T17:02:31.750", x: 0.832, y: 0.488}
+      - {camera: G331, at: "2018-03-07T17:02:46.500", x: 0.833, y: 0.487}
+      - {camera: G331, at: "2018-03-07T17:03:16.500", x: 0.828, y: 0.485}
+      - {camera: G331, at: "2018-03-07T17:03:03.500", x: 0.951, y: 0.451}
+      - {camera: G331, at: "2018-03-07T17:03:11.750", x: 0.951, y: 0.451}
+      - {camera: G331, at: "2018-03-07T17:03:18", x: 0.951, y: 0.453}
+      - {camera: G331, at: "2018-03-07T17:03:28.500", x: 0.946, y: 0.472}
+      - {camera: G331, at: "2018-03-07T17:03:31.750", x: 0.944, y: 0.473}
+      - {camera: G331, at: "2018-03-07T17:03:34", x: 0.944, y: 0.472}
+      - {camera: G331, at: "2018-03-07T17:03:41.250", x: 0.936, y: 0.458}
+      - {camera: G331, at: "2018-03-07T17:03:47.250", x: 0.938, y: 0.458}
+      - {camera: G331, at: "2018-03-07T17:04:42.750", x: 0.938, y: 0.457}
+      - {camera: G331, at: "2018-03-07T17:03:46.250", x: 0.470, y: 0.523}
+      - {camera: G331, at: "2018-03-07T17:03:46.750", x: 0.440, y: 0.543}
+      - {camera: G331, at: "2018-03-07T17:03:52.250", x: 0.421, y: 0.571}
+      - {camera: G331, at: "2018-03-07T17:04:51.500", x: 0.792, y: 0.593}
+      - {camera: G331, at: "2018-03-07T17:04:54", x: 0.791, y: 0.598}
+      - {camera: G331, at: "2018-03-07T17:04:59", x: 0.790, y: 0.600}
+      - {camera: G331, at: "2018-03-07T17:04:48.750", x: 0.949, y: 0.452}
+      - {camera: G331, at: "2018-03-07T17:04:53.750", x: 0.949, y: 0.453}
+      - {camera: G331, at: "2018-03-07T17:04:59.750", x: 0.939, y: 0.450}
+  g331-0307-brown-suitcases:
+    description: Brown monogram wheeled suitcases
+    anchors:
+      - {camera: G331, at: "2018-03-07T17:00:49", x: 0.956, y: 0.447}
+      - {camera: G331, at: "2018-03-07T17:00:50.500", x: 0.945, y: 0.442}
+      - {camera: G331, at: "2018-03-07T17:00:51.500", x: 0.914, y: 0.412}
+      - {camera: G331, at: "2018-03-07T17:01:17.500", x: 0.916, y: 0.348}
+      - {camera: G331, at: "2018-03-07T17:01:21", x: 0.922, y: 0.410}
+      - {camera: G331, at: "2018-03-07T17:01:22", x: 0.924, y: 0.410}
+      - {camera: G331, at: "2018-03-07T17:01:19.500", x: 0.927, y: 0.416}
+      - {camera: G331, at: "2018-03-07T17:01:48", x: 0.949, y: 0.452}
+      - {camera: G331, at: "2018-03-07T17:02:30", x: 0.939, y: 0.451}
+      - {camera: G331, at: "2018-03-07T17:03:03.500", x: 0.951, y: 0.451}
+      - {camera: G331, at: "2018-03-07T17:03:11.750", x: 0.951, y: 0.451}
+      - {camera: G331, at: "2018-03-07T17:03:18", x: 0.951, y: 0.453}
+      - {camera: G331, at: "2018-03-07T17:04:48.750", x: 0.949, y: 0.452}
+      - {camera: G331, at: "2018-03-07T17:04:53.750", x: 0.949, y: 0.453}
+      - {camera: G331, at: "2018-03-07T17:04:59.750", x: 0.939, y: 0.450}
+  g331-0307-tan-trousers-man:
+    description: Man in an olive jacket, grey beanie and tan trousers; later sits using an iPad
+    anchors:
+      - {camera: G331, at: "2018-03-07T17:01:11", x: 0.106, y: 0.647}
+      - {camera: G331, at: "2018-03-07T17:01:15", x: 0.228, y: 0.547}
+      - {camera: G331, at: "2018-03-07T17:01:27", x: 0.318, y: 0.343}
+      - {camera: G331, at: "2018-03-07T17:01:37.500", x: 0.982, y: 0.283}
+      - {camera: G331, at: "2018-03-07T17:01:38.500", x: 0.979, y: 0.282}
+      - {camera: G331, at: "2018-03-07T17:01:39", x: 0.975, y: 0.273}
+      - {camera: G331, at: "2018-03-07T17:02:57.750", x: 0.268, y: 0.321}
+      - {camera: G331, at: "2018-03-07T17:03:03.500", x: 0.188, y: 0.524}
+      - {camera: G331, at: "2018-03-07T17:03:04", x: 0.138, y: 0.595}
+      - {camera: G331, at: "2018-03-07T17:03:12.500", x: 0.129, y: 0.670}
+      - {camera: G331, at: "2018-03-07T17:03:13", x: 0.173, y: 0.639}
+      - {camera: G331, at: "2018-03-07T17:03:13.500", x: 0.229, y: 0.598}
+  g331-0307-blonde-woman:
+    description: Women with blonde or light hair
+    anchors:
+      - {camera: G331, at: "2018-03-07T17:03:57.500", x: 0.647, y: 0.607}
+      - {camera: G331, at: "2018-03-07T17:03:58", x: 0.656, y: 0.604}
+      - {camera: G331, at: "2018-03-07T17:04:35.750", x: 0.641, y: 0.480}
+      - {camera: G331, at: "2018-03-07T17:00:39.750", x: 0.923, y: 0.724}
+      - {camera: G331, at: "2018-03-07T17:00:41", x: 0.936, y: 0.719}
+      - {camera: G331, at: "2018-03-07T17:00:42", x: 0.977, y: 0.696}
+      - {camera: G331, at: "2018-03-07T17:02:04", x: 0.284, y: 0.912}
+      - {camera: G331, at: "2018-03-07T17:02:05.250", x: 0.207, y: 0.921}
+      - {camera: G331, at: "2018-03-07T17:02:06.250", x: 0.201, y: 0.945}
+  g331-0315-blonde-blue-shirt-woman:
+    description: Woman with blonde hair in a blue shirt and khaki trousers
+    anchors:
+      - {camera: G331, at: "2018-03-15T15:50:41", x: 0.677, y: 0.231}
+      - {camera: G331, at: "2018-03-15T15:50:41.750", x: 0.657, y: 0.229}
+      - {camera: G331, at: "2018-03-15T15:50:43.250", x: 0.630, y: 0.231}
+      - {camera: G331, at: "2018-03-15T15:51:08.250", x: 0.587, y: 0.207}
+      - {camera: G331, at: "2018-03-15T15:51:10", x: 0.649, y: 0.222}
+      - {camera: G331, at: "2018-03-15T15:51:11", x: 0.688, y: 0.224}
+      - {camera: G331, at: "2018-03-15T15:52:35.750", x: 0.710, y: 0.229}
+      - {camera: G331, at: "2018-03-15T15:52:38", x: 0.720, y: 0.231}
+      - {camera: G331, at: "2018-03-15T15:52:42.250", x: 0.716, y: 0.229}
+  g331-0315-green-backpack:
+    description: Olive-green backpack on a bench seat for the whole clip
+    anchors:
+      - {camera: G331, at: "2018-03-15T15:50:41.250", x: 0.926, y: 0.757}
+      - {camera: G331, at: "2018-03-15T15:52:02.750", x: 0.923, y: 0.755}
+      - {camera: G331, at: "2018-03-15T15:52:38.500", x: 0.924, y: 0.758}
+  school-red-hoodie:
+    description: Person in a red hoodie, seen in the cafe and then outside the entrance
+    anchors:
+      - {camera: G421, at: "2018-03-15T14:53:10", x: 0.262, y: 0.319}
+      - {camera: G421, at: "2018-03-15T14:53:13.500", x: 0.263, y: 0.319}
+      - {camera: G421, at: "2018-03-15T14:53:32.750", x: 0.284, y: 0.314}
+      - {camera: G421, at: "2018-03-15T14:53:36.250", x: 0.435, y: 0.248}
+      - {camera: G421, at: "2018-03-15T14:53:36.750", x: 0.461, y: 0.242}
+      - {camera: G421, at: "2018-03-15T14:53:37", x: 0.468, y: 0.243}
+      - {camera: G638, at: "2018-03-15T14:53:41.250", x: 0.422, y: 0.493}
+      - {camera: G638, at: "2018-03-15T14:53:43.250", x: 0.517, y: 0.504}
+      - {camera: G638, at: "2018-03-15T14:53:46.250", x: 0.634, y: 0.490}
+      - {camera: G638, at: "2018-03-15T14:53:57", x: 0.938, y: 0.503}
+      - {camera: G638, at: "2018-03-15T14:53:57.500", x: 0.952, y: 0.509}
+      - {camera: G638, at: "2018-03-15T14:53:58", x: 0.968, y: 0.515}
+  school-cart-woman:
+    description: Older woman in a beige jacket and red trousers pushing a cart with a blanket
+    anchors:
+      - {camera: G421, at: "2018-03-15T14:53:13", x: 0.774, y: 0.302}
+      - {camera: G421, at: "2018-03-15T14:53:13.750", x: 0.774, y: 0.304}
+      - {camera: G421, at: "2018-03-15T14:53:14.750", x: 0.790, y: 0.252}
+      - {camera: G421, at: "2018-03-15T14:53:19.750", x: 0.720, y: 0.314}
+      - {camera: G421, at: "2018-03-15T14:53:23.750", x: 0.637, y: 0.341}
+      - {camera: G421, at: "2018-03-15T14:53:30.250", x: 0.757, y: 0.379}
+      - {camera: G421, at: "2018-03-15T14:54:08.750", x: 0.754, y: 0.422}
+      - {camera: G421, at: "2018-03-15T14:54:13.250", x: 0.549, y: 0.442}
+      - {camera: G421, at: "2018-03-15T14:54:15", x: 0.439, y: 0.446}
+      - {camera: G638, at: "2018-03-15T14:52:30.500", x: 0.282, y: 0.573}
+      - {camera: G638, at: "2018-03-15T14:52:32", x: 0.276, y: 0.554}
+      - {camera: G638, at: "2018-03-15T14:52:36.750", x: 0.259, y: 0.561}
+      - {camera: G638, at: "2018-03-15T14:52:33.500", x: 0.267, y: 0.590}
+      - {camera: G638, at: "2018-03-15T14:52:44.500", x: 0.268, y: 0.589}
+      - {camera: G638, at: "2018-03-15T14:52:55.750", x: 0.267, y: 0.588}
+      - {camera: G638, at: "2018-03-15T14:52:49.500", x: 0.258, y: 0.557}
+      - {camera: G638, at: "2018-03-15T14:52:52.250", x: 0.258, y: 0.555}
+      - {camera: G638, at: "2018-03-15T14:52:54.750", x: 0.258, y: 0.554}
+  school-white-cap-backpack-man:
+    description: Man with a white cap, dark backpack, maroon top and brown trousers
+    anchors:
+      - {camera: G638, at: "2018-03-15T14:53:38.750", x: 0.342, y: 0.740}
+      - {camera: G638, at: "2018-03-15T14:53:49", x: 0.413, y: 0.878}
+      - {camera: G638, at: "2018-03-15T14:54:05.250", x: 0.321, y: 0.787}
+      - {camera: G638, at: "2018-03-15T14:54:14.500", x: 0.354, y: 0.775}
+      - {camera: G638, at: "2018-03-15T14:54:22.750", x: 0.356, y: 0.842}
+      - {camera: G638, at: "2018-03-15T14:54:28.250", x: 0.321, y: 0.785}
+  school-grey-hoodie-camo:
+    description: Man in a grey hoodie and camouflage trousers
+    anchors:
+      - {camera: G421, at: "2018-03-15T14:53:14.500", x: 0.198, y: 0.314}
+      - {camera: G421, at: "2018-03-15T14:53:16", x: 0.199, y: 0.314}
+      - {camera: G421, at: "2018-03-15T14:54:01", x: 0.168, y: 0.463}
+      - {camera: G421, at: "2018-03-15T14:54:07.750", x: 0.145, y: 0.326}
+      - {camera: G421, at: "2018-03-15T14:54:09.250", x: 0.179, y: 0.308}
+      - {camera: G421, at: "2018-03-15T14:54:10.250", x: 0.233, y: 0.307}
+      - {camera: G421, at: "2018-03-15T14:54:15.250", x: 0.578, y: 0.279}
+      - {camera: G421, at: "2018-03-15T14:54:19", x: 0.547, y: 0.298}
+      - {camera: G421, at: "2018-03-15T14:54:22.500", x: 0.528, y: 0.272}
+  school-light-blue-sweater:
+    description: Person with short grey hair in a light blue sweater
+    anchors:
+      - {camera: G421, at: "2018-03-15T14:53:29", x: 0.689, y: 0.760}
+      - {camera: G421, at: "2018-03-15T14:53:33", x: 0.735, y: 0.739}
+      - {camera: G421, at: "2018-03-15T14:53:36.250", x: 0.712, y: 0.842}
+  nv-girl-white-shirt:
+    description: Synthetic child-sized girl with a ponytail, white shirt and jeans
+    anchors:
+      - {camera: NV071-C0644, at: "2018-03-16T16:00:30.500", x: 0.224, y: 0.786}
+      - {camera: NV071-C0644, at: "2018-03-16T16:00:37.500", x: 0.436, y: 0.799}
+      - {camera: NV071-C0644, at: "2018-03-16T16:00:39.250", x: 0.635, y: 0.830}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:30.750", x: 0.539, y: 0.619}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:31.500", x: 0.514, y: 0.657}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:34", x: 0.474, y: 0.702}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:36.750", x: 0.590, y: 0.707}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:38.750", x: 0.591, y: 0.708}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:41.750", x: 0.609, y: 0.823}
+  nv-red-floral-dress:
+    description: Woman in a red floral dress with long ombre hair, on both store cameras
+    anchors:
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:29", x: 0.606, y: 0.736}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:32", x: 0.597, y: 0.670}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:35.500", x: 0.700, y: 0.845}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:51.500", x: 0.919, y: 0.845}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:53.750", x: 0.836, y: 0.656}
+      - {camera: NV071-C0644, at: "2018-03-16T16:02:10.250", x: 0.921, y: 0.618}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:50.500", x: 0.973, y: 0.902}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:51", x: 0.978, y: 0.868}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:51.500", x: 0.983, y: 0.888}
+      - {camera: NV071-C0647, at: "2018-03-16T16:00:59.250", x: 0.436, y: 0.738}
+      - {camera: NV071-C0647, at: "2018-03-16T16:01:01", x: 0.385, y: 0.510}
+      - {camera: NV071-C0647, at: "2018-03-16T16:01:05", x: 0.276, y: 0.273}
+      - {camera: NV071-C0647, at: "2018-03-16T16:01:08.750", x: 0.276, y: 0.273}
+      - {camera: NV071-C0647, at: "2018-03-16T16:01:12.250", x: 0.056, y: 0.531}
+  nv-pink-suit:
+    description: Woman in a pink trouser suit, on both store cameras
+    anchors:
+      - {camera: NV071-C0644, at: "2018-03-16T16:00:54.250", x: 0.607, y: 0.833}
+      - {camera: NV071-C0644, at: "2018-03-16T16:00:58.500", x: 0.556, y: 0.791}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:00.500", x: 0.575, y: 0.821}
+      - {camera: NV071-C0647, at: "2018-03-16T16:01:17.500", x: 0.071, y: 0.293}
+      - {camera: NV071-C0647, at: "2018-03-16T16:01:19", x: 0.109, y: 0.274}
+      - {camera: NV071-C0647, at: "2018-03-16T16:01:28.500", x: 0.069, y: 0.404}
+
+windows:
+  g331-0307: &g331_0307 {cameras: [G331], time_from: "2018-03-07T17:00:00", time_to: "2018-03-07T17:05:00"}
+  g331-0315: &g331_0315 {cameras: [G331], time_from: "2018-03-15T15:50:40", time_to: "2018-03-15T15:52:50"}
+  school: &school {cameras: [G420, G421, G638], time_from: "2018-03-15T14:50:00", time_to: "2018-03-15T14:55:00"}
+  store: &store {cameras: [NV071-C0644, NV071-C0647]}
+
+queries:
+  # Captain's queries for MEVA G331, 7 March 2018 17:00-17:05 (relayed 2026-10-17), with Arabic rewrites.
+  - {id: c01, register: jordanian, source: captain, story: suspect, text: "امراة تلبس جاكيت سكني او ابيض", english: "a woman wearing a grey or white jacket", targets: [g331-0307-grey-jacket-woman, g331-0307-cream-jacket-woman], filter: *g331_0307}
+  - {id: c02, register: jordanian, source: captain, story: suspect, text: "معهها شنطة بنية او لونها بيج", english: "she has a brown or beige bag", targets: [g331-0307-grey-jacket-woman, g331-0307-grey-jacket-woman-bag, g331-0307-tan-bag-woman, g331-0307-cream-bag-woman], filter: *g331_0307}
+  - {id: c03, register: formal, story: suspect, text: "امرأة ترتدي جاكيتاً رمادياً أو أبيض وتحمل حقيبة بنية أو بيج", english: "a woman in a grey or white jacket carrying a brown or beige bag", targets: [g331-0307-grey-jacket-woman, g331-0307-grey-jacket-woman-bag], filter: *g331_0307}
+  - {id: c04, register: jordanian, story: suspect, text: "مرة لابسة جاكيت سكني أو أبيض ومعها شنتة بيج", english: "a woman in a grey or white jacket with a beige bag", targets: [g331-0307-grey-jacket-woman, g331-0307-grey-jacket-woman-bag], filter: *g331_0307}
+  - {id: c05, register: english, source: captain, story: suspect, text: "woman wearing red jacket", targets: [g331-0307-red-jacket-women], filter: *g331_0307}
+  - {id: c06, register: formal, story: suspect, text: "امرأة ترتدي سترة حمراء", english: "a woman wearing a red jacket", targets: [g331-0307-red-jacket-women], filter: *g331_0307}
+  - {id: c07, register: jordanian, story: suspect, text: "مرة لابسة جاكيت أحمر", english: "a woman wearing a red jacket", targets: [g331-0307-red-jacket-women], filter: *g331_0307}
+  - {id: c08, register: gulf, story: suspect, text: "حرمة لابسة جاكيت أحمر", english: "a woman wearing a red jacket", targets: [g331-0307-red-jacket-women], filter: *g331_0307}
+  - {id: c09, register: english, source: captain, story: suspect, text: "man has a walkig suitecase bag", targets: [g331-0307-suitcase-men, g331-0307-wheeled-suitcases], filter: *g331_0307}
+  - {id: c10, register: formal, story: suspect, text: "رجل يجر حقيبة سفر بعجلات", english: "a man pulling a wheeled suitcase", targets: [g331-0307-suitcase-men, g331-0307-wheeled-suitcases], filter: *g331_0307}
+  - {id: c11, register: jordanian, story: suspect, text: "زلمة بيجر شنتة سفر", english: "a man pulling a suitcase", targets: [g331-0307-suitcase-men, g331-0307-wheeled-suitcases], filter: *g331_0307}
+  - {id: c12, register: gulf, story: suspect, text: "رجّال يسحب شنطة سفر", english: "a man pulling a suitcase", targets: [g331-0307-suitcase-men, g331-0307-wheeled-suitcases], filter: *g331_0307}
+  - {id: c13, register: english, source: captain, story: suspect, text: "man wearing brown trousers", targets: [g331-0307-tan-trousers-man], filter: *g331_0307}
+  - {id: c14, register: formal, story: suspect, text: "رجل يرتدي بنطالاً بنياً", english: "a man wearing brown trousers", targets: [g331-0307-tan-trousers-man], filter: *g331_0307}
+  - {id: c15, register: jordanian, story: suspect, text: "زلمة لابس بنطلون بني", english: "a man wearing brown trousers", targets: [g331-0307-tan-trousers-man], filter: *g331_0307}
+  - {id: c16, register: gulf, story: suspect, text: "رجّال لابس سروال بني", english: "a man wearing brown trousers", targets: [g331-0307-tan-trousers-man], filter: *g331_0307}
+  - {id: c17, register: english, source: captain, story: suspect, text: "woman with blonde hair", targets: [g331-0307-blonde-woman], filter: *g331_0307}
+  - {id: c18, register: formal, story: suspect, text: "امرأة ذات شعر أشقر", english: "a woman with blonde hair", targets: [g331-0307-blonde-woman], filter: *g331_0307}
+  - {id: c19, register: jordanian, story: suspect, text: "مرة شعرها أشقر", english: "a woman with blonde hair", targets: [g331-0307-blonde-woman], filter: *g331_0307}
+  - {id: c20, register: gulf, story: suspect, text: "حرمة شعرها أشقر", english: "a woman with blonde hair", targets: [g331-0307-blonde-woman], filter: *g331_0307}
+  - {id: c21, register: english, source: captain, story: suspect, text: "man has an ipad", targets: [g331-0307-tan-trousers-man], filter: *g331_0307}
+  - {id: c22, register: formal, story: suspect, text: "رجل يحمل جهازاً لوحياً", english: "a man holding a tablet", targets: [g331-0307-tan-trousers-man], filter: *g331_0307}
+  - {id: c23, register: jordanian, story: suspect, text: "زلمة معه آيباد", english: "a man with an iPad", targets: [g331-0307-tan-trousers-man], filter: *g331_0307}
+  - {id: c24, register: gulf, story: suspect, text: "رجّال وياه آيباد", english: "a man with an iPad", targets: [g331-0307-tan-trousers-man], filter: *g331_0307}
+
+  # Suspect story across three school cameras in one 5-minute window (15 March 2018).
+  - {id: s01, register: formal, story: suspect, text: "شخص يرتدي سترة حمراء بقلنسوة", english: "a person in a red hooded top", targets: [school-red-hoodie], filter: *school}
+  - {id: s02, register: jordanian, story: suspect, text: "واحد لابس هودي أحمر", english: "someone wearing a red hoodie", targets: [school-red-hoodie], filter: *school}
+  - {id: s03, register: english, story: suspect, text: "a person in a red hoodie", targets: [school-red-hoodie], filter: *school}
+  - {id: s04, register: formal, story: suspect, text: "امرأة مسنّة ترتدي سترة بيج وبنطالاً أحمر وتدفع عربة", english: "an older woman in a beige jacket and red trousers pushing a cart", targets: [school-cart-woman], filter: *school}
+  - {id: s05, register: jordanian, story: suspect, text: "ختيارة لابسة جاكيت بيج وبنطلون أحمر ومعها عرباية", english: "an old woman in a beige jacket and red trousers with a cart", targets: [school-cart-woman], filter: *school}
+  - {id: s06, register: gulf, story: suspect, text: "عجوز لابسة جاكيت بيج وسروال أحمر وتدف عربانة", english: "an old woman in a beige jacket and red trousers pushing a cart", targets: [school-cart-woman], filter: *school}
+  - {id: s07, register: formal, story: suspect, text: "رجل يرتدي قبعة بيضاء ويحمل حقيبة ظهر", english: "a man in a white cap carrying a backpack", targets: [school-white-cap-backpack-man], filter: *school}
+  - {id: s08, register: gulf, story: suspect, text: "رجّال لابس كاب أبيض وشايل شنطة ظهر", english: "a man in a white cap carrying a backpack", targets: [school-white-cap-backpack-man], filter: *school}
+  - {id: s09, register: formal, story: suspect, text: "رجل يرتدي سترة رمادية بقلنسوة وبنطالاً مموهاً", english: "a man in a grey hoodie and camouflage trousers", targets: [school-grey-hoodie-camo], filter: *school}
+  - {id: s10, register: jordanian, story: suspect, text: "زلمة لابس هودي سكني وبنطلون مرقّط", english: "a man in a grey hoodie and camo trousers", targets: [school-grey-hoodie-camo], filter: *school}
+  - {id: s11, register: formal, story: suspect, text: "شخص يرتدي كنزة زرقاء فاتحة", english: "a person in a light blue sweater", targets: [school-light-blue-sweater], filter: *school}
+
+  # Left bag story, as a search for the bag.
+  - {id: b01, register: formal, story: left-bag, text: "حقيبة سفر بنية مزخرفة", english: "a patterned brown suitcase", targets: [g331-0307-brown-suitcases], filter: *g331_0307}
+  - {id: b02, register: gulf, story: left-bag, text: "شنطة سفر بنية", english: "a brown suitcase", targets: [g331-0307-brown-suitcases], filter: *g331_0307}
+  - {id: b03, register: formal, story: left-bag, text: "حقيبة ظهر خضراء على مقعد", english: "a green backpack on a seat", targets: [g331-0315-green-backpack], filter: *g331_0315}
+  - {id: b04, register: jordanian, story: left-bag, text: "شنتة ظهر خضرا على الكرسي", english: "a green backpack on the chair", targets: [g331-0315-green-backpack], filter: *g331_0315}
+  - {id: b05, register: formal, story: suspect, text: "امرأة شقراء ترتدي قميصاً أزرق", english: "a blonde woman in a blue shirt", targets: [g331-0315-blonde-blue-shirt-woman], filter: *g331_0315}
+
+  # Lost child story on the synthetic store cameras: a synthetic child-sized girl stands in.
+  - {id: l01, register: formal, story: lost-child, text: "طفلة ترتدي قميصاً أبيض وبنطال جينز", english: "a girl in a white shirt and jeans", targets: [nv-girl-white-shirt], filter: *store}
+  - {id: l02, register: jordanian, story: lost-child, text: "بنت صغيرة لابسة بلوزة بيضا وجينز", english: "a little girl in a white top and jeans", targets: [nv-girl-white-shirt], filter: *store}
+  - {id: l03, register: gulf, story: lost-child, text: "بنية صغيرة لابسة قميص أبيض وجينز", english: "a little girl in a white shirt and jeans", targets: [nv-girl-white-shirt], filter: *store}
+  - {id: l04, register: formal, story: lost-child, text: "امرأة ترتدي فستاناً أحمر مشجراً", english: "a woman in a red floral dress", targets: [nv-red-floral-dress], filter: *store}
+  - {id: l05, register: gulf, story: lost-child, text: "حرمة لابسة فستان أحمر", english: "a woman in a red dress", targets: [nv-red-floral-dress], filter: *store}
+  - {id: l06, register: formal, story: lost-child, text: "امرأة ترتدي بدلة وردية", english: "a woman in a pink suit", targets: [nv-pink-suit], filter: *store}
+  - {id: l07, register: jordanian, story: lost-child, text: "مرة لابسة بدلة زهر", english: "a woman in a pink suit", targets: [nv-pink-suit], filter: *store}
+
+  # Nobody in the public footage wears Arabic dress (a known gap of the starter set).
+  - {id: n01, register: formal, story: suspect, expect: no-match, text: "رجل يرتدي ثوباً أبيض وشماغاً أحمر", english: "a man in a white thobe and a red shemagh", targets: []}
