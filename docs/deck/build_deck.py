@@ -671,7 +671,7 @@ def slide_bag(deck: Deck):
         notes="""
 Left bag as a search, small extra work: backpack, handbag and suitcase are object classes the RF-DETR detector already knows (report D6 answer).
 Known weakness: small bags far from the camera get missed (board, D6).
-An automatic left-bag alert (owner walks away, bag stays) is a separate, optional feature of about 1-2 extra weeks; it is not part of the PoC (report D6 answer).
+An automatic left-bag alert (owner walks away, bag stays) is a separate, optional feature and is not part of the PoC (report D6 answer).
 The second query, "a man in a black hoodie", is an illustration; one MEVA clip in the starter set shows a man in a black hoodie wheeling a suitcase away (board D2 clip list).
 Demo footage: the MEVA bus-station waiting room clip with the only labelled "person abandons package" in public MEVA data, and a CAVIAR left-bag lobby clip (report D2 answer).
 Time saved: "under 2 minutes" is the plan's proposed success measure, not a measured result (report section 6).
@@ -1039,38 +1039,31 @@ def slide_roadmap(deck: Deck):
     s = deck.new(
         kicker="Roadmap",
         arabic="خارطة الطريق",
-        title="About 9 weeks to a working demo, then a pilot with a partner site",
+        title="Four phases to a working demo, then a pilot with a partner site",
         notes="""
-Timeline estimate, about 9 weeks (report section 6):
-Phase 0 set-up, week 1: Mac set up, clips downloaded and trimmed, ground truth written.
-Phase 1 baseline with option A (direct multilingual embedding), weeks 2-4.
-Phase 2 Arabic hybrid (query parser, attributes, double-check), weeks 5-7.
-Phase 3 demo-ready, weeks 8-9.
+Phases, in order (report section 6); no time estimates are given here:
+Phase 0 set-up: Mac set up, clips downloaded and trimmed, ground truth written.
+Phase 1 baseline with option A (direct multilingual embedding).
+Phase 2 Arabic hybrid (query parser, attributes, double-check).
+Phase 3 demo-ready.
 Team: 1 CV/ML engineer, 1 full-stack engineer, a part-time native Arabic speaker, and a part-time PM/legal for dataset licences, attribution and the impact assessment.
 After the PoC (report section 4): a single-site pilot is realistic with a partner; a district needs a public-sector sponsor; city-wide is a government programme. Production hardware is sized separately (decision D3).
 """,
     )
     phases = [
-        ("Phase 0", "Week 1", "Set-up", "Mac ready, about 10 public clips trimmed, right answers written down."),
-        ("Phase 1", "Weeks 2-4", "Baseline", "Upload, detect, track, index. First Arabic search and test set."),
-        ("Phase 2", "Weeks 5-7", "Arabic hybrid", "Dialect-aware query reading, clothing details, double-check step."),
-        ("Phase 3", "Weeks 8-9", "Demo-ready", "Timeline across cameras, audit log, demo script, results write-up."),
+        ("Phase 0", "Set-up", "Mac ready, about 10 public clips trimmed, right answers written down."),
+        ("Phase 1", "Baseline", "Upload, detect, track, index. First Arabic search and test set."),
+        ("Phase 2", "Arabic hybrid", "Dialect-aware query reading, clothing details, double-check step."),
+        ("Phase 3", "Demo-ready", "Timeline across cameras, audit log, demo script, results write-up."),
     ]
-    weeks = [1, 3, 3, 2]
     total_w = 12.13
-    unit = (total_w - 3 * 0.08) / 9
-    x = 0.6
-    y = 1.95
-    for i, ((ph, wk, name, body), n) in enumerate(zip(phases, weeks)):
-        w = unit * n
-        box(s, x, y, w, 0.62, fill=TEAL if i < 3 else NAVY, radius=0.12,
-            paras=[P(ph, size=12.5, bold=True, color=WHITE, align="c", space_after=0),
-                   P(wk, size=11.5, color=WHITE, align="c", space_after=0)], anchor="middle", pad=0.04)
-        x += w + 0.08
-    x = 0.6
     cw = (total_w - 3 * 0.2) / 4
-    for i, (ph, wk, name, body) in enumerate(phases):
+    for i, (ph, name, body) in enumerate(phases):
         cx = 0.6 + i * (cw + 0.2)
+        box(s, cx, 1.95, cw, 0.62, fill=TEAL if i < 3 else NAVY, radius=0.12,
+            paras=[P(ph, size=13, bold=True, color=WHITE, align="c", space_after=0)], anchor="middle", pad=0.04)
+        if i < 3:
+            chevron(s, cx + cw + 0.03, 2.13, 0.14, 0.26)
         text(s, cx, 2.75, cw, 0.4, P(name, size=18, bold=True, color=NAVY, space_after=0))
         text(s, cx, 3.15, cw, 0.95, P(body, size=13.5, space_after=0))
 
