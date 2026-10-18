@@ -46,10 +46,36 @@ def test_summary_skips_no_match_queries():
     assert s["gulf"]["queries"] == 1
 
 
+QUERIES = __import__("avs.settings", fromlist=["REPO_ROOT"]).REPO_ROOT / "eval" / "queries.yaml"
+# The captain's own queries, which must stay exactly as written.
+CAPTAIN = {
+    "c01": "امراة تلبس جاكيت سكني او ابيض",
+    "c02": "معهها شنطة بنية او لونها بيج",
+    "c05": "woman wearing red jacket",
+    "c09": "man has a walkig suitecase bag",
+    "c13": "man wearing brown trousers",
+    "c17": "woman with blonde hair",
+    "c21": "man has an ipad",
+}
+
+
 def test_seeded_query_file_is_consistent():
-    targets, queries = load_queries(__import__("avs.settings", fromlist=["REPO_ROOT"]).REPO_ROOT / "eval" / "queries.yaml")
-    assert 20 <= len(queries) <= 60
+    targets, queries = load_queries(QUERIES)
+    assert 80 <= len(queries) <= 120
     assert len({q["id"] for q in queries}) == len(queries)
-    assert {"formal", "jordanian", "gulf"} <= {q["register"] for q in queries}
+    assert {"formal", "jordanian", "gulf", "mixed", "english"} == {q["register"] for q in queries}
     for name, anchors in targets.items():
         assert anchors, name
+    assert {q["id"]: q["text"] for q in queries if q.get("source") == "captain"} == CAPTAIN
+    assert sum(q.get("added") == "phase2" for q in queries) == len(queries) - 48
+
+
+def test_every_query_has_expected_fields_the_scorer_understands():
+    from avs.fields import QueryFields
+    from avs.tools.parse_scoring import SCORED_FIELDS, score_fields
+
+    allowed = set(QueryFields.model_fields) - {"english", "other"}
+    for q in load_queries(QUERIES)[1]:
+        assert set(q["fields"]) <= allowed, q["id"]
+        # A parse that names nothing is wrong on every field the query does name, and nothing crashes.
+        assert set(score_fields(q["fields"], QueryFields(english="x"))) == set(SCORED_FIELDS)

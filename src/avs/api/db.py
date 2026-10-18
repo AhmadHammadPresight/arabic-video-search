@@ -70,7 +70,21 @@ CREATE TRIGGER IF NOT EXISTS audit_log_no_update BEFORE UPDATE ON audit_log
 BEGIN SELECT RAISE(ABORT, 'audit_log is append-only'); END;
 CREATE TRIGGER IF NOT EXISTS audit_log_no_delete BEFORE DELETE ON audit_log
 BEGIN SELECT RAISE(ABORT, 'audit_log is append-only'); END;
+
+CREATE TABLE IF NOT EXISTS search_traces (
+    search_id  TEXT PRIMARY KEY,   -- the search_id of the audit log's search entry
+    created_at TEXT NOT NULL,
+    mode       TEXT NOT NULL,      -- baseline | hybrid
+    trace      TEXT NOT NULL       -- JSON: every stage of the search with its output and timing
+);
 """
+
+# Columns added after phase 1; init_db adds whichever an existing database lacks.
+MIGRATIONS = [
+    ("tracks", "attributes", "TEXT"),    # JSON {source, attributes, ms, raw, ...} from the attribute step
+    ("tracks", "selection", "TEXT"),     # JSON: every candidate crop and why it was or was not picked
+    ("recordings", "index_stats", "TEXT"),  # JSON: frames, detections, timings and models of the last indexing
+]
 
 
 def now() -> str:
@@ -85,6 +99,10 @@ def init_db(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with connect(path) as conn:
         conn.executescript(SCHEMA)
+        for table, column, kind in MIGRATIONS:
+            columns = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})")}
+            if column not in columns:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {kind}")
 
 
 @contextmanager
@@ -138,19 +156,33 @@ def create_recording(
     return get_recording(conn, recording_id)
 
 
+def _recording(row: sqlite3.Row) -> dict:
+    """A recording row without its indexing stats, which only the recording trace shows."""
+    data = dict(row)
+    data.pop("index_stats", None)
+    return data
+
+
 def get_recording(conn: sqlite3.Connection, recording_id: str) -> dict | None:
     row = conn.execute("SELECT * FROM recordings WHERE id = ?", (recording_id,)).fetchone()
-    return dict(row) if row else None
+    return _recording(row) if row else None
 
 
 def list_recordings(conn: sqlite3.Connection) -> list[dict]:
     rows = conn.execute("SELECT * FROM recordings ORDER BY camera_id, start_time").fetchall()
-    return [dict(r) for r in rows]
+    return [_recording(r) for r in rows]
+
+
+def get_index_stats(conn: sqlite3.Connection, recording_id: str) -> dict | None:
+    row = conn.execute("SELECT index_stats FROM recordings WHERE id = ?", (recording_id,)).fetchone()
+    return json.loads(row["index_stats"]) if row and row["index_stats"] else None
 
 
 def update_recording(conn: sqlite3.Connection, recording_id: str, **fields) -> None:
     if not fields:
         return
+    if "index_stats" in fields and fields["index_stats"] is not None:
+        fields["index_stats"] = json.dumps(fields["index_stats"], ensure_ascii=False)
     columns = ", ".join(f"{name} = ?" for name in fields)
     conn.execute(f"UPDATE recordings SET {columns} WHERE id = ?", (*fields.values(), recording_id))
 
@@ -210,24 +242,43 @@ def replace_tracks(conn: sqlite3.Connection, recording_id: str, tracks: list[dic
     with transaction(conn):
         conn.execute("DELETE FROM tracks WHERE recording_id = ?", (recording_id,))
         conn.executemany(
-            """INSERT INTO tracks (track_key, recording_id, track_id, label, t_start, t_end, boxes, crops)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            """INSERT INTO tracks (track_key, recording_id, track_id, label, t_start, t_end, boxes, crops,
+                   attributes, selection)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             [
                 (
                     f"{recording_id}/{t['track_id']}", recording_id, t["track_id"], t["label"],
                     t["t_start"], t["t_end"], json.dumps(t["boxes"]),
-                    json.dumps([{"t": c["t"], "box": c["box"], "path": c["path"]} for c in t["crops"]]),
+                    json.dumps([{"t": c["t"], "box": c["box"], "path": c["path"], "quality": c.get("quality")}
+                                for c in t["crops"]]),
+                    json.dumps(t["attributes"], ensure_ascii=False) if t.get("attributes") else None,
+                    json.dumps(t["selection"]) if t.get("selection") else None,
                 )
                 for t in tracks
             ],
         )
 
 
+def _track(row: sqlite3.Row) -> dict:
+    data = dict(row) | {"boxes": json.loads(row["boxes"]), "crops": json.loads(row["crops"])}
+    for key in ("attributes", "selection"):
+        data[key] = json.loads(data[key]) if data.get(key) else None
+    return data
+
+
 def tracks_for_recording(conn: sqlite3.Connection, recording_id: str) -> list[dict]:
     rows = conn.execute(
         "SELECT * FROM tracks WHERE recording_id = ? ORDER BY t_start, track_id", (recording_id,)
     ).fetchall()
-    return [dict(r) | {"boxes": json.loads(r["boxes"]), "crops": json.loads(r["crops"])} for r in rows]
+    return [_track(r) for r in rows]
+
+
+def tracks_by_key(conn: sqlite3.Connection, track_keys: list[str]) -> dict[str, dict]:
+    if not track_keys:
+        return {}
+    marks = ",".join("?" * len(track_keys))
+    rows = conn.execute(f"SELECT * FROM tracks WHERE track_key IN ({marks})", track_keys).fetchall()
+    return {r["track_key"]: _track(r) for r in rows}
 
 
 # Audit log
@@ -246,6 +297,21 @@ def append_audit(
 def list_audit(conn: sqlite3.Connection, limit: int = 200) -> list[dict]:
     rows = conn.execute("SELECT * FROM audit_log ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
     return [dict(r) | {"details": json.loads(r["details"])} for r in rows]
+
+
+# Search traces
+
+
+def save_trace(conn: sqlite3.Connection, search_id: str, mode: str, trace: dict) -> None:
+    conn.execute(
+        "INSERT OR REPLACE INTO search_traces (search_id, created_at, mode, trace) VALUES (?, ?, ?, ?)",
+        (search_id, now(), mode, json.dumps(trace, ensure_ascii=False)),
+    )
+
+
+def get_trace(conn: sqlite3.Connection, search_id: str) -> dict | None:
+    row = conn.execute("SELECT trace FROM search_traces WHERE search_id = ?", (search_id,)).fetchone()
+    return json.loads(row["trace"]) if row else None
 
 
 def find_audit(conn: sqlite3.Connection, search_id: str, action: str = "search") -> dict | None:

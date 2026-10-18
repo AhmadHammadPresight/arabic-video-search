@@ -1,0 +1,613 @@
+# Attribute ground truth for choosing how tracks get attributes (python -m avs.tools.attribute_benchmark).
+#
+# A fixed random sample of 80 person tracks and 12 bag tracks (seed 20261017) across the MEVA and
+# NVIDIA cameras, each labelled by eye from its three best crops only, which is what the models see.
+# A field is left out when the crops do not show it clearly; `skip: true` marks tracks too small or
+# blurred to label at all. Colour lists hold every colour that counts as right (camouflage, maroon).
+# headwear is the kind of head covering, or none; bag says whether the person carries a bag.
+# Anchors work like those in queries.yaml: the centre of the track's best crop at that moment.
+tracks:
+- n: 1
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:00:52', x: 0.95, y: 0.333}
+  gender: male
+  upper: [green]
+  lower: [blue]
+  hair: [black]
+  headwear: none
+  bag: true
+- n: 2
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:04:27.250', x: 0.308, y: 0.746}
+  upper: [black]
+  lower: [blue]
+  headwear: hood
+  bag: false
+- n: 3
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:01:39', x: 0.975, y: 0.273}
+  gender: male
+  upper: [green]
+  lower: [beige, brown]
+  bag: false
+- n: 4
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:00:26', x: 0.966, y: 0.437}
+  bag: true
+- n: 5
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:03:16', x: 0.264, y: 0.205}
+  upper: [blue]
+  lower: [grey]
+- n: 6
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:04:55.750', x: 0.262, y: 0.239}
+  gender: male
+  upper: [grey, black]
+  lower: [blue]
+  headwear: beanie
+- n: 7
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:02:04', x: 0.284, y: 0.912}
+  gender: female
+  upper: [black]
+  hair: [blonde, brown]
+  headwear: none
+- n: 8
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:02:14.500', x: 0.511, y: 0.256}
+  upper: [black]
+  lower: [black]
+  headwear: hood
+  bag: true
+- n: 9
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:03:53.500', x: 0.18, y: 0.548}
+  gender: male
+  upper: [black]
+  lower: [black]
+  headwear: beanie
+  bag: true
+- n: 10
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:02:07.750', x: 0.916, y: 0.38}
+  upper: [black]
+  lower: [black, blue]
+  bag: true
+- n: 11
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:02:24', x: 0.962, y: 0.438}
+  bag: true
+- n: 12
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:02:24.500', x: 0.512, y: 0.245}
+  gender: male
+  upper: [black]
+  lower: [grey]
+  hair: [black]
+  headwear: none
+  bag: false
+- n: 13
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:01:07.500', x: 0.575, y: 0.131}
+  skip: true
+- n: 14
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:00:22', x: 0.33, y: 0.316}
+  gender: male
+  upper: [black]
+  lower: &id001 [green, black, grey, brown]
+  headwear: beanie
+  bag: false
+- n: 15
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:00:31', x: 0.573, y: 0.138}
+  gender: male
+  upper: [green, grey, beige]
+  hair: [black]
+- n: 16
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:02:00.500', x: 0.855, y: 0.357}
+  upper: [white, beige]
+  headwear: beanie
+- n: 17
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:02:07.500', x: 0.13, y: 0.69}
+  gender: female
+  upper: [red]
+  lower: [black]
+  hair: [brown]
+  headwear: beanie
+  bag: false
+- n: 18
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:01:22.750', x: 0.575, y: 0.131}
+  skip: true
+- n: 19
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:03:41.750', x: 0.86, y: 0.354}
+  upper: [white, beige]
+  headwear: beanie
+- n: 20
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:02:31.250', x: 0.083, y: 0.74}
+  gender: female
+  upper: [red]
+  lower: [black]
+  headwear: beanie
+  bag: true
+- n: 21
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:04:47', x: 0.575, y: 0.133}
+  skip: true
+- n: 22
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:03:34.250', x: 0.309, y: 0.187}
+  skip: true
+- n: 23
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:03:58.250', x: 0.245, y: 0.679}
+  gender: male
+  upper: [black]
+  lower: [blue]
+  headwear: beanie
+  bag: false
+- n: 24
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:00:26.500', x: 0.93, y: 0.724}
+  gender: female
+  upper: [black]
+  hair: [blonde]
+- n: 25
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:00:58.500', x: 0.332, y: 0.317}
+  gender: male
+  upper: [black]
+  lower: *id001
+  headwear: beanie
+  bag: false
+- n: 26
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:01:02.250', x: 0.194, y: 0.642}
+  gender: male
+  upper: [black]
+  lower: [grey, green]
+  hair: [brown, black]
+  headwear: none
+  bag: true
+- n: 27
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:01:54.250', x: 0.575, y: 0.131}
+  skip: true
+- n: 28
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:03:26.750', x: 0.293, y: 0.192}
+  gender: male
+  upper: [grey, green, beige]
+  lower: [blue]
+  bag: true
+- n: 29
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:00:08', x: 0.575, y: 0.131}
+  skip: true
+- n: 30
+  kind: person
+  anchor: {camera: G331, at: '2018-03-07T17:01:36.500', x: 0.761, y: 0.717}
+  gender: female
+  upper: [black, blue]
+  lower: [black, blue]
+  hair: [black]
+  headwear: none
+  bag: false
+- n: 31
+  kind: person
+  anchor: {camera: G331, at: '2018-03-15T15:50:42.750', x: 0.413, y: 0.291}
+  upper: [black]
+  lower: [black]
+  hair: [brown, blonde]
+  headwear: none
+  bag: false
+- n: 32
+  kind: person
+  anchor: {camera: G331, at: '2018-03-15T15:51:26.250', x: 0.575, y: 0.113}
+  gender: male
+  upper: [white]
+  headwear: cap
+- n: 33
+  kind: person
+  anchor: {camera: G331, at: '2018-03-15T15:50:47.250', x: 0.572, y: 0.115}
+  gender: male
+  upper: [white]
+  headwear: cap
+- n: 34
+  kind: person
+  anchor: {camera: G331, at: '2018-03-15T15:50:45.500', x: 0.898, y: 0.729}
+  lower: [blue]
+  bag: true
+- n: 35
+  kind: person
+  anchor: {camera: G331, at: '2018-03-15T15:52:44.750', x: 0.573, y: 0.119}
+  gender: male
+  upper: [white]
+  headwear: cap
+- n: 36
+  kind: person
+  anchor: {camera: G331, at: '2018-03-15T15:50:41', x: 0.677, y: 0.231}
+  gender: female
+  upper: [blue]
+  lower: [beige, green]
+  hair: [blonde]
+  headwear: none
+  bag: false
+- n: 37
+  kind: person
+  anchor: {camera: G420, at: '2018-03-15T14:51:02.500', x: 0.504, y: 0.853}
+  gender: female
+  upper: [black]
+  lower: [blue]
+  hair: [black]
+  headwear: none
+  bag: false
+- n: 38
+  kind: person
+  anchor: {camera: G420, at: '2018-03-15T14:50:49.250', x: 0.206, y: 0.799}
+  gender: male
+  upper: [green, brown, black, beige]
+  hair: [grey]
+  headwear: cap
+  bag: false
+- n: 39
+  kind: person
+  anchor: {camera: G421, at: '2018-03-15T14:53:49', x: 0.621, y: 0.332}
+  gender: female
+  upper: [blue, black]
+  lower: [beige, white]
+  headwear: beanie
+  bag: false
+- n: 40
+  kind: person
+  anchor: {camera: G421, at: '2018-03-15T14:52:47.750', x: 0.27, y: 0.302}
+  gender: male
+  upper: [black]
+  lower: [grey]
+  hair: [black]
+  headwear: none
+  bag: false
+- n: 41
+  kind: person
+  anchor: {camera: G421, at: '2018-03-15T14:53:55.750', x: 0.238, y: 0.327}
+  gender: male
+  upper: [black]
+  lower: [blue]
+  headwear: cap
+  bag: false
+- n: 42
+  kind: person
+  anchor: {camera: G421, at: '2018-03-15T14:54:25.250', x: 0.235, y: 0.327}
+  gender: male
+  upper: [black]
+  lower: [blue]
+  headwear: cap
+  bag: false
+- n: 43
+  kind: person
+  anchor: {camera: G421, at: '2018-03-15T14:52:34.250', x: 0.231, y: 0.304}
+  gender: female
+  upper: [black]
+  lower: [black]
+  hair: [black]
+  bag: false
+- n: 44
+  kind: person
+  anchor: {camera: G421, at: '2018-03-15T14:53:23.750', x: 0.637, y: 0.341}
+  gender: female
+  upper: [beige, white]
+  lower: [red, pink]
+  headwear: beanie
+  bag: false
+- n: 45
+  kind: person
+  anchor: {camera: G421, at: '2018-03-15T14:53:35.250', x: 0.072, y: 0.768}
+  gender: female
+  upper: [grey, blue]
+  lower: [black]
+  hair: [black]
+  headwear: none
+  bag: false
+- n: 46
+  kind: person
+  anchor: {camera: G421, at: '2018-03-15T14:53:38.750', x: 0.304, y: 0.376}
+  gender: male
+  upper: [black]
+  lower: [blue]
+  hair: [black]
+  headwear: none
+- n: 47
+  kind: person
+  anchor: {camera: G421, at: '2018-03-15T14:53:49.500', x: 0.14, y: 0.328}
+  gender: male
+  upper: [black, grey]
+  headwear: cap
+- n: 48
+  kind: person
+  anchor: {camera: G421, at: '2018-03-15T14:53:06.750', x: 0.452, y: 0.714}
+  gender: female
+  upper: [black, blue]
+  lower: [black]
+  hair: [grey]
+  headwear: none
+  bag: true
+- n: 49
+  kind: person
+  anchor: {camera: G421, at: '2018-03-15T14:54:14.750', x: 0.455, y: 0.446}
+  gender: female
+  upper: [beige, white]
+  lower: [red, pink]
+  headwear: beanie
+  bag: false
+- n: 50
+  kind: person
+  anchor: {camera: G421, at: '2018-03-15T14:54:21.500', x: 0.11, y: 0.349}
+  gender: female
+  upper: [black]
+  hair: [black]
+- n: 51
+  kind: person
+  anchor: {camera: G421, at: '2018-03-15T14:54:09', x: 0.166, y: 0.463}
+  gender: male
+  upper: [black]
+  hair: [black]
+  headwear: none
+  bag: false
+- n: 52
+  kind: person
+  anchor: {camera: G421, at: '2018-03-15T14:54:38.750', x: 0.324, y: 0.632}
+  gender: male
+  upper: [black]
+  lower: [blue]
+  headwear: cap
+  bag: false
+- n: 53
+  kind: person
+  anchor: {camera: G638, at: '2018-03-15T14:53:49.750', x: 0.508, y: 0.416}
+  skip: true
+- n: 54
+  kind: person
+  anchor: {camera: G638, at: '2018-03-15T14:53:50', x: 0.409, y: 0.873}
+  gender: male
+  upper: [red, brown]
+  lower: [brown]
+  headwear: cap
+  bag: true
+- n: 55
+  kind: person
+  anchor: {camera: G638, at: '2018-03-15T14:53:01.250', x: 0.954, y: 0.531}
+  upper: [black]
+  lower: [blue]
+- n: 56
+  kind: person
+  anchor: {camera: G638, at: '2018-03-15T14:54:37.750', x: 0.938, y: 0.516}
+  upper: [grey]
+  lower: [grey, green]
+  headwear: hood
+- n: 57
+  kind: person
+  anchor: {camera: G638, at: '2018-03-15T14:52:36.250', x: 0.671, y: 0.695}
+  gender: female
+  upper: [grey, white, black]
+  lower: [red]
+  bag: true
+- n: 58
+  kind: person
+  anchor: {camera: G638, at: '2018-03-15T14:53:53.250', x: 0.56, y: 0.498}
+  upper: [black]
+  lower: [blue]
+- n: 59
+  kind: person
+  anchor: {camera: G638, at: '2018-03-15T14:53:57', x: 0.938, y: 0.503}
+  upper: [red]
+  lower: [black]
+  headwear: hood
+- n: 60
+  kind: person
+  anchor: {camera: G638, at: '2018-03-15T14:54:00.250', x: 0.326, y: 0.536}
+  gender: female
+  upper: [black, blue, white]
+  lower: [white, beige]
+  headwear: beanie
+  bag: false
+- n: 61
+  kind: person
+  anchor: {camera: G638, at: '2018-03-15T14:52:45', x: 0.251, y: 0.569}
+  skip: true
+- n: 62
+  kind: person
+  anchor: {camera: G638, at: '2018-03-15T14:53:43.250', x: 0.517, y: 0.504}
+  upper: [red, pink]
+  lower: [black]
+  headwear: hood
+- n: 63
+  kind: person
+  anchor: {camera: G638, at: '2018-03-15T14:52:35.250', x: 0.651, y: 0.61}
+  gender: male
+  upper: [black, blue]
+  lower: [brown]
+  headwear: helmet
+- n: 64
+  kind: person
+  anchor: {camera: G638, at: '2018-03-15T14:53:10.500', x: 0.718, y: 0.52}
+  skip: true
+- n: 65
+  kind: person
+  anchor: {camera: G638, at: '2018-03-15T14:54:23', x: 0.709, y: 0.583}
+  gender: male
+  upper: [grey]
+  lower: [black, grey]
+  headwear: cap
+  bag: true
+- n: 66
+  kind: person
+  anchor: {camera: G638, at: '2018-03-15T14:52:58.750', x: 0.979, y: 0.361}
+  skip: true
+- n: 67
+  kind: person
+  anchor: {camera: NV071-C0644, at: '2018-03-16T16:02:12.250', x: 0.953, y: 0.562}
+  gender: male
+  upper: [red, purple, brown]
+  lower: [blue]
+  hair: [black, brown]
+  headwear: none
+  bag: false
+- n: 68
+  kind: person
+  anchor: {camera: NV071-C0644, at: '2018-03-16T16:00:44.250', x: 0.578, y: 0.737}
+  gender: female
+  upper: [grey, blue]
+  lower: [blue]
+  hair: [blonde]
+  headwear: none
+  bag: false
+- n: 69
+  kind: person
+  anchor: {camera: NV071-C0644, at: '2018-03-16T16:02:24.750', x: 0.96, y: 0.47}
+  upper: [black]
+  lower: [blue]
+  hair: [black]
+  headwear: none
+  bag: false
+- n: 70
+  kind: person
+  anchor: {camera: NV071-C0644, at: '2018-03-16T16:02:28.500', x: 0.061, y: 0.763}
+  gender: female
+  upper: [white]
+  lower: [blue]
+  hair: [brown]
+  headwear: none
+  bag: false
+- n: 71
+  kind: person
+  anchor: {camera: NV071-C0644, at: '2018-03-16T16:01:51.500', x: 0.662, y: 0.695}
+  gender: female
+  upper: [black, white]
+  lower: [black]
+  hair: [black]
+  headwear: none
+  bag: false
+- n: 72
+  kind: person
+  anchor: {camera: NV071-C0644, at: '2018-03-16T16:01:05.250', x: 0.987, y: 0.499}
+  skip: true
+- n: 73
+  kind: person
+  anchor: {camera: NV071-C0644, at: '2018-03-16T16:01:15.500', x: 0.827, y: 0.613}
+  gender: male
+  upper: [grey]
+  lower: [black]
+  hair: [black, brown]
+  headwear: none
+  bag: false
+- n: 74
+  kind: person
+  anchor: {camera: NV071-C0647, at: '2018-03-16T16:02:16', x: 0.085, y: 0.048}
+  lower: [blue]
+- n: 75
+  kind: person
+  anchor: {camera: NV071-C0647, at: '2018-03-16T16:00:30.500', x: 0.409, y: 0.414}
+  gender: male
+  upper: [blue]
+  lower: [blue]
+  headwear: none
+  bag: false
+- n: 76
+  kind: person
+  anchor: {camera: NV071-C0647, at: '2018-03-16T16:01:51.250', x: 0.967, y: 0.246}
+  gender: female
+  upper: [black, white]
+  lower: [black]
+  hair: [blonde]
+  headwear: none
+  bag: false
+- n: 77
+  kind: person
+  anchor: {camera: NV071-C0647, at: '2018-03-16T16:02:29', x: 0.111, y: 0.079}
+  gender: female
+  upper: [pink, beige]
+  lower: [blue]
+  hair: [brown]
+  headwear: none
+  bag: false
+- n: 78
+  kind: person
+  anchor: {camera: NV071-C0647, at: '2018-03-16T16:02:08.250', x: 0.458, y: 0.824}
+  gender: female
+  upper: [black]
+  lower: [black]
+  hair: [blonde]
+  headwear: none
+  bag: false
+- n: 79
+  kind: person
+  anchor: {camera: NV071-C0647, at: '2018-03-16T16:01:37', x: 0.425, y: 0.289}
+  gender: female
+  upper: [black, blue, grey]
+  lower: [black, grey]
+  hair: [black, brown]
+  headwear: none
+  bag: false
+- n: 80
+  kind: person
+  anchor: {camera: NV071-C0647, at: '2018-03-16T16:02:17.750', x: 0.623, y: 0.587}
+  gender: female
+  upper: [white]
+  lower: [blue]
+  hair: [brown]
+  headwear: none
+  bag: false
+- n: 81
+  kind: bag
+  anchor: {camera: G331, at: '2018-03-07T17:01:32.250', x: 0.362, y: 0.726}
+  colour: [green, brown]
+- n: 82
+  kind: bag
+  anchor: {camera: G421, at: '2018-03-15T14:53:28.250', x: 0.639, y: 0.445}
+  colour: [black]
+- n: 83
+  kind: bag
+  anchor: {camera: G638, at: '2018-03-15T14:53:19', x: 0.38, y: 0.78}
+  colour: [black, blue]
+- n: 84
+  kind: bag
+  anchor: {camera: G421, at: '2018-03-15T14:52:34.750', x: 0.258, y: 0.719}
+  colour: null
+- n: 85
+  kind: bag
+  anchor: {camera: G331, at: '2018-03-07T17:01:47.500', x: 0.649, y: 0.295}
+  colour: [beige, brown]
+- n: 86
+  kind: bag
+  anchor: {camera: G421, at: '2018-03-15T14:53:03', x: 0.259, y: 0.696}
+  colour: null
+- n: 87
+  kind: bag
+  anchor: {camera: G331, at: '2018-03-07T17:01:42.250', x: 0.877, y: 0.936}
+  colour: null
+- n: 88
+  kind: bag
+  anchor: {camera: G331, at: '2018-03-07T17:00:21.250', x: 0.766, y: 0.332}
+  colour: [grey, black, white]
+- n: 89
+  kind: bag
+  anchor: {camera: G331, at: '2018-03-07T17:02:28.250', x: 0.906, y: 0.846}
+  colour: null
+- n: 90
+  kind: bag
+  anchor: {camera: G421, at: '2018-03-15T14:54:02', x: 0.832, y: 0.408}
+  colour: [black, blue]
+- n: 91
+  kind: bag
+  anchor: {camera: G638, at: '2018-03-15T14:52:41.250', x: 0.442, y: 0.649}
+  colour: [black, blue]
+- n: 92
+  kind: bag
+  anchor: {camera: G421, at: '2018-03-15T14:53:19.500', x: 0.427, y: 0.64}
+  colour: [black, grey]

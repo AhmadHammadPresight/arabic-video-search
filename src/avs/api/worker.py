@@ -8,6 +8,7 @@ tracks and vectors, so a job can always be retried safely.
 from __future__ import annotations
 
 import logging
+import shutil
 import signal
 import time
 
@@ -37,6 +38,9 @@ def build_points(recording: dict, track: dict) -> list[models.PointStruct]:
         "abs_start": offset(start, track["t_start"]),
         "abs_end": offset(start, track["t_end"]),
     }
+    if track.get("attributes") and track["attributes"].get("attributes"):
+        # The track's attributes ride on every crop point, so a search can filter on them in Qdrant.
+        shared["attributes"] = track["attributes"]["attributes"]
     return [
         models.PointStruct(
             id=point_id(track_key, i),
@@ -45,6 +49,17 @@ def build_points(recording: dict, track: dict) -> list[models.PointStruct]:
         )
         for i, crop in enumerate(track["crops"])
     ]
+
+
+def prune_crops(settings: Settings, recording_id: str, keep: str) -> None:
+    """Remove a recording's crops from earlier indexing runs, once the points of the new run are in place."""
+    folder = settings.resolve(f"crops/{recording_id}")
+    kept = settings.resolve(keep)
+    if kept.parent != folder or not folder.is_dir():
+        return
+    for child in folder.iterdir():
+        if child != kept:
+            shutil.rmtree(child) if child.is_dir() else child.unlink()
 
 
 class Worker:
@@ -62,22 +77,35 @@ class Worker:
                 return
             db.update_recording(conn, recording["id"], status="indexing", progress=0.0, error=None)
             tracks: list[dict] = []
+            crops_path = None
+            stats: dict = {"started_at": db.now()}
             try:
+                stats["models"] = {k: v for k, v in self.inference.health().items() if k not in ("status", "indexing")}
                 for event in self.inference.index(recording["id"], recording["video_path"], self.settings.sample_fps):
                     kind = event["type"]
-                    if kind == "playback":
+                    if kind == "info":
+                        stats["video"] = {k: v for k, v in event.items() if k != "type"}
+                    elif kind == "playback":
                         db.update_recording(conn, recording["id"], playback_path=event["path"])
+                    elif kind == "crops":
+                        crops_path = event["path"]
                     elif kind == "progress" and event.get("duration"):
                         db.update_recording(conn, recording["id"], progress=min(0.99, event["t"] / event["duration"]))
                     elif kind == "track":
                         tracks.append(event)
                     elif kind == "done":
+                        stats |= {k: v for k, v in event.items() if k != "type"}
                         log.info("indexed %s: %d tracks in %.1fs", recording["id"], event["tracks"], event["seconds"])
                 points = [p for track in tracks for p in build_points(recording, track)]
                 self.store.replace_recording(recording["id"], points)
                 db.replace_tracks(conn, recording["id"], tracks)
+                if crops_path:
+                    prune_crops(self.settings, recording["id"], crops_path)
+                stats |= {"sample_fps": self.settings.sample_fps, "crops_per_track": self.settings.crops_per_track,
+                          "min_track_detections": self.settings.min_track_detections}
                 db.update_recording(
-                    conn, recording["id"], status="indexed", progress=1.0, track_count=len(tracks), indexed_at=db.now()
+                    conn, recording["id"], status="indexed", progress=1.0, track_count=len(tracks), indexed_at=db.now(),
+                    index_stats=stats,
                 )
                 db.finish_job(conn, job["id"], "done")
             except Exception as exc:

@@ -1,6 +1,10 @@
 """Run the query file against the live index and report top-10 hit rate and precision at 5.
 
-    python -m avs.tools.evaluate [eval/queries.yaml] [--api URL] [--out data/eval]
+    python -m avs.tools.evaluate [eval/queries.yaml] [--api URL] [--mode baseline|hybrid|both] [--out data/eval]
+
+Each query runs in option A (`baseline`) and in the phase 2 hybrid; for the hybrid, the first
+ranking and the ranking after the vision-model double-check are scored separately, so the
+report shows option A, hybrid, and hybrid plus check side by side on the same index.
 
 Ground truth is written as anchors, not track ids, so it survives re-indexing with other
 settings: an anchor is a point on the target (camera, local time, x and y as fractions of
@@ -18,6 +22,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -31,6 +36,9 @@ from avs.settings import REPO_ROOT, get_settings
 
 ANCHOR_TOLERANCE_S = 0.5
 POINT_MARGIN = 0.01
+# Scored rankings: option A, the hybrid's first ranking, and the hybrid after the double-check.
+RANKINGS = {"baseline": "Option A", "hybrid": "Hybrid", "checked": "Hybrid + check"}
+CHECK_TIMEOUT_S = 300
 
 
 @dataclass(frozen=True)
@@ -107,15 +115,45 @@ def summarise(rows: list[dict], key: str | None = None) -> dict[str, dict]:
     }
 
 
+def run_query(client: httpx.Client, q: dict, mode: str) -> dict[str, dict]:
+    """The scored rankings of one query in one mode, with their timings."""
+    body = {"query": q["text"], "limit": 10, "actor": "eval", "mode": mode, **(q.get("filter") or {})}
+    found = client.post("/api/search", json=body).raise_for_status().json()
+    first = {"top": [r["track_key"] for r in found["results"]],
+             "top_score": found["results"][0]["score"] if found["results"] else None,
+             "took_ms": found["took_ms"], "ran_as": found.get("mode", mode)}
+    if mode == "baseline":
+        return {"baseline": first}
+    out = {"hybrid": first | {"english": (found.get("parsed") or {}).get("english")}}
+    if "check" not in found:  # the hybrid fell back to option A; nothing was checked
+        return out | {"checked": dict(first)}
+    started, deadline = time.monotonic(), time.monotonic() + CHECK_TIMEOUT_S
+    while True:
+        status = client.get(f"/api/search/{found['search_id']}/check").raise_for_status().json()
+        if status["status"] in ("done", "skipped", "failed", "cancelled", "interrupted") or time.monotonic() > deadline:
+            break
+        time.sleep(0.5)
+    results = status["results"] if status["status"] == "done" else found["results"]
+    verdicts = {k: v["verdict"] for k, v in status.get("verdicts", {}).items()}
+    out["checked"] = {"top": [r["track_key"] for r in results], "check_status": status["status"],
+                      "check_ms": round((time.monotonic() - started) * 1000), "verdicts": verdicts}
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("queries", nargs="?", default=str(REPO_ROOT / "eval" / "queries.yaml"))
     parser.add_argument("--api", default="http://127.0.0.1:8470")
+    parser.add_argument("--mode", choices=["baseline", "hybrid", "both"], default="both")
+    parser.add_argument("--only", nargs="*", help="run only these query ids")
     parser.add_argument("--out", default=str(get_settings().data_dir / "eval"))
     args = parser.parse_args(argv)
+    modes = ["baseline", "hybrid"] if args.mode == "both" else [args.mode]
 
     targets, queries = load_queries(Path(args.queries))
-    client = httpx.Client(base_url=args.api, timeout=60.0)
+    if args.only:
+        queries = [q for q in queries if q["id"] in args.only]
+    client = httpx.Client(base_url=args.api, timeout=120.0)
     recordings = [r for r in client.get("/api/recordings").raise_for_status().json() if r["status"] == "indexed"]
     tracks = {r["id"]: client.get(f"/api/recordings/{r['id']}/tracks").raise_for_status().json() for r in recordings}
 
@@ -127,50 +165,86 @@ def main(argv: list[str] | None = None) -> int:
         if misses := matched.count(None):
             unresolved.append(f"{name}: {misses} of {len(anchors)} anchor(s) matched no track")
 
-    rows = []
+    rows: dict[str, list[dict]] = {k: [] for k in RANKINGS}
     for q in queries:
-        body = {"query": q["text"], "limit": 10, "actor": "eval", **(q.get("filter") or {})}
-        results = client.post("/api/search", json=body).raise_for_status().json()["results"]
         relevant = set().union(*(resolved[t] for t in q.get("targets", []))) if q.get("targets") else set()
-        row = {
+        base = {
             "id": q["id"], "text": q["text"], "register": q.get("register", "formal"), "story": q.get("story", "suspect"),
             "language": "english" if q.get("register") == "english" else "arabic",
+            "set": "added in phase 2" if q.get("added") == "phase2" else "phase 1 set",
             "expect": q.get("expect", "match"), "relevant_tracks": len(relevant),
-            "top_score": results[0]["score"] if results else None,
-            "top": [r["track_key"] for r in results],
         }
-        row |= score_query(row["top"], relevant)
-        rows.append(row)
+        for mode in modes:
+            for ranking, result in run_query(client, q, mode).items():
+                row = base | result
+                row |= score_query(row["top"], relevant)
+                rows[ranking].append(row)
+        print(f"  {q['id']:5} " + "  ".join(
+            f"{RANKINGS[k]}: {rows[k][-1]['first_relevant_rank'] or '-'}" for k in RANKINGS if rows[k] and rows[k][-1]["id"] == q["id"]
+        ) + f"  {q['text']}", flush=True)
 
+    scored = {k: v for k, v in rows.items() if v}
     report = {
         "at": datetime.now(UTC).isoformat(timespec="seconds"),
         "queries_file": str(args.queries),
-        "summary": summarise(rows, "register"),
-        "by_language": summarise(rows, "language"),
-        "by_story": summarise(rows, "story"),
+        "rankings": list(scored),
+        "summary": {k: summarise(v, "register") for k, v in scored.items()},
+        "by_language": {k: summarise(v, "language") for k, v in scored.items()},
+        "by_story": {k: summarise(v, "story") for k, v in scored.items()},
+        "by_set": {k: summarise(v, "set") for k, v in scored.items()},
+        "timing_ms": timing(scored),
         "unresolved_targets": unresolved,
-        "rows": rows,
+        "rows": scored,
     }
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     path = out / f"report-{datetime.now(UTC):%Y%m%dT%H%M%SZ}.json"
     path.write_text(json.dumps(report, ensure_ascii=False, indent=2))
 
-    print(f"{'id':5} {'register':10} {'hit@10':>6} {'P@5':>5} {'rank':>4} {'top':>6}  query")
-    for r in rows:
-        rank = r["first_relevant_rank"] or "-"
-        mark = "  (no-match query)" if r["expect"] == "no-match" else ""
-        print(f"{r['id']:5} {r['register']:10} {r['hit_at_10']:6.0f} {r['precision_at_5']:5.2f} {rank:>4} {r['top_score'] or 0:6.3f}  {r['text']}{mark}")
-    print("\n| Group | Queries | Top-10 hit rate | Precision at 5 | MRR |\n|---|---|---|---|---|")
-    groups = list(report["summary"].items())
-    groups += [(f"{k} (all registers)", v) for k, v in report["by_language"].items() if k == "arabic"]
-    groups += [(f"story: {k}", v) for k, v in report["by_story"].items() if k != "all"]
-    for name, s in groups:
-        print(f"| {name} | {s['queries']} | {s['hit_at_10']:.2f} | {s['precision_at_5']:.2f} | {s['mrr']:.2f} |")
+    print("\n" + side_by_side(report))
+    print(f"\ntiming (ms): {report['timing_ms']}")
     if unresolved:
         print("\nAnchors that matched no track (check the ground truth):", *unresolved, sep="\n  ")
     print(f"\nreport: {path}")
     return 0
+
+
+def timing(scored: dict[str, list[dict]]) -> dict:
+    def stats(values: list[float]) -> dict:
+        values = sorted(values)
+        return {"median": values[len(values) // 2], "p90": values[int(0.9 * (len(values) - 1))], "max": values[-1]} if values else {}
+
+    out = {k: stats([r["took_ms"] for r in v]) for k, v in scored.items() if k != "checked"}
+    if "checked" in scored:
+        out["double_check"] = stats([r["check_ms"] for r in scored["checked"] if r.get("check_ms") is not None])
+    return out
+
+
+def side_by_side(report: dict) -> str:
+    """Markdown table: one row per group, three numbers per ranking."""
+    names = report["rankings"]
+    head = "| Group | Queries | " + " | ".join(f"{RANKINGS[n]} hit@10 | P@5 | MRR" for n in names) + " |"
+    lines = [head, "|---|---|" + "---|---|---|" * len(names)]
+    first = names[0]
+    groups = [(k, k) for k in report["summary"][first]]
+    groups += [("arabic", "Arabic, all registers")] if "arabic" in report["by_language"][first] else []
+    groups += [(f"story:{k}", f"{k} story") for k in report["by_story"][first] if k != "all"]
+    groups += [(f"set:{k}", k) for k in report["by_set"][first] if k != "all"]
+
+    def lookup(name: str, key: str) -> dict:
+        if key.startswith("story:"):
+            return report["by_story"][name][key[6:]]
+        if key.startswith("set:"):
+            return report["by_set"][name][key[4:]]
+        if key == "arabic":
+            return report["by_language"][name]["arabic"]
+        return report["summary"][name][key]
+
+    for key, label in groups:
+        cells = [lookup(n, key) for n in names]
+        lines.append(f"| {label} | {cells[0]['queries']} | " + " | ".join(
+            f"{c['hit_at_10']:.2f} | {c['precision_at_5']:.2f} | {c['mrr']:.2f}" for c in cells) + " |")
+    return "\n".join(lines)
 
 
 if __name__ == "__main__":

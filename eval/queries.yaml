@@ -10,9 +10,15 @@
 # correct when one of its boxes contains an anchor within half a second. Anchors do not depend
 # on track ids, so they still hold after re-indexing with other settings.
 #
-# register: formal (Modern Standard Arabic), jordanian, gulf, or english (for comparison).
+# register: formal (Modern Standard Arabic), jordanian, gulf, mixed (Arabic with English words),
+# or english (for comparison).
 # source: captain = written by the captain, verbatim; otherwise written for this set.
 # expect: no-match = nobody in the footage matches; reported but left out of the averages.
+# fields: what the text says, in the schema of src/avs/fields.py, for scoring the query model
+# (python -m avs.tools.compare_query_models); anything not named is expected empty. A list of
+# values means any of them is right (see src/avs/tools/parse_scoring.py).
+# added: phase2 = written in phase 2, after the fusion weights were set on the first 48 queries,
+# so the README reports those queries on their own as well.
 #
 # Bags held by a target are separate tracks; a query about a person also accepts their bag
 # where the description names it.
@@ -336,6 +342,67 @@ targets:
       - {camera: NV071-C0647, at: "2018-03-16T16:01:19", x: 0.109, y: 0.274}
       - {camera: NV071-C0647, at: "2018-03-16T16:01:28.500", x: 0.069, y: 0.404}
 
+  school-white-hair-woman:
+    description: Older woman with short white hair, a navy jacket over a striped top and black trousers (later outside the entrance)
+    anchors:
+      - {camera: G421, at: "2018-03-15T14:53:06", x: 0.462, y: 0.665}
+      - {camera: G421, at: "2018-03-15T14:53:18", x: 0.404, y: 0.737}
+      - {camera: G421, at: "2018-03-15T14:53:21.250", x: 0.468, y: 0.452}
+      - {camera: G638, at: "2018-03-15T14:54:00.500", x: 0.301, y: 0.544}
+      - {camera: G638, at: "2018-03-15T14:54:13.250", x: 0.310, y: 0.554}
+      - {camera: G638, at: "2018-03-15T14:54:17.500", x: 0.323, y: 0.544}
+  school-grey-beanie-scarf-woman:
+    description: Woman in a grey beanie, a cream scarf, a navy jacket and light trousers, in the cafe and then outside
+    anchors:
+      - {camera: G421, at: "2018-03-15T14:53:45.750", x: 0.427, y: 0.333}
+      - {camera: G421, at: "2018-03-15T14:53:49", x: 0.621, y: 0.332}
+      - {camera: G421, at: "2018-03-15T14:53:52.500", x: 0.745, y: 0.326}
+      - {camera: G638, at: "2018-03-15T14:54:00.250", x: 0.326, y: 0.536}
+      - {camera: G638, at: "2018-03-15T14:54:01.250", x: 0.327, y: 0.537}
+      - {camera: G638, at: "2018-03-15T14:54:21.750", x: 0.377, y: 0.519}
+  school-camo-hoodie-man:
+    description: Older man in a camouflage hoodie and a black cap, climbing the stairs
+    anchors:
+      - {camera: G420, at: "2018-03-15T14:50:44.500", x: 0.525, y: 0.841}
+      - {camera: G420, at: "2018-03-15T14:50:48.500", x: 0.299, y: 0.821}
+      - {camera: G420, at: "2018-03-15T14:50:50", x: 0.083, y: 0.803}
+  school-bicycle-man:
+    description: Man walking a bicycle across the entrance plaza, white helmet or cap, dark top, brown trousers
+    anchors:
+      - {camera: G638, at: "2018-03-15T14:52:31.750", x: 0.695, y: 0.624}
+      - {camera: G638, at: "2018-03-15T14:52:35.250", x: 0.651, y: 0.610}
+      - {camera: G638, at: "2018-03-15T14:52:37.500", x: 0.596, y: 0.548}
+  nv-bald-denim-man:
+    description: Bald man with a beard in a denim shirt and jeans, on both store cameras
+    anchors:
+      - {camera: NV071-C0647, at: "2018-03-16T16:00:30.250", x: 0.437, y: 0.407}
+      - {camera: NV071-C0647, at: "2018-03-16T16:00:30.750", x: 0.395, y: 0.425}
+      - {camera: NV071-C0647, at: "2018-03-16T16:00:31.250", x: 0.321, y: 0.347}
+      - {camera: NV071-C0644, at: "2018-03-16T16:00:49.500", x: 0.501, y: 0.831}
+      - {camera: NV071-C0644, at: "2018-03-16T16:00:50.750", x: 0.487, y: 0.718}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:10.750", x: 0.924, y: 0.515}
+  nv-maroon-tshirt-man:
+    description: Man in a maroon t-shirt and light jeans, on both store cameras
+    anchors:
+      - {camera: NV071-C0647, at: "2018-03-16T16:00:44.500", x: 0.555, y: 0.276}
+      - {camera: NV071-C0647, at: "2018-03-16T16:01:08.500", x: 0.674, y: 0.477}
+      - {camera: NV071-C0647, at: "2018-03-16T16:01:10.500", x: 0.657, y: 0.738}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:31.500", x: 0.234, y: 0.811}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:37.500", x: 0.394, y: 0.668}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:41.500", x: 0.837, y: 0.826}
+      - {camera: NV071-C0644, at: "2018-03-16T16:02:09.500", x: 0.954, y: 0.563}
+      - {camera: NV071-C0644, at: "2018-03-16T16:02:12.500", x: 0.952, y: 0.562}
+      - {camera: NV071-C0644, at: "2018-03-16T16:02:15.250", x: 0.954, y: 0.562}
+  nv-blonde-bob-woman:
+    description: Woman with a short blonde bob, a grey-blue t-shirt and dark jeans
+    anchors:
+      - {camera: NV071-C0644, at: "2018-03-16T16:00:44.250", x: 0.578, y: 0.737}
+      - {camera: NV071-C0644, at: "2018-03-16T16:00:45", x: 0.607, y: 0.676}
+      - {camera: NV071-C0644, at: "2018-03-16T16:00:46.250", x: 0.643, y: 0.604}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:15.500", x: 0.919, y: 0.861}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:35.250", x: 0.449, y: 0.854}
+      - {camera: NV071-C0644, at: "2018-03-16T16:01:43.750", x: 0.447, y: 0.851}
+
 windows:
   g331-0307: &g331_0307 {cameras: [G331], time_from: "2018-03-07T17:00:00", time_to: "2018-03-07T17:05:00"}
   g331-0315: &g331_0315 {cameras: [G331], time_from: "2018-03-15T15:50:40", time_to: "2018-03-15T15:52:50"}
@@ -344,59 +411,130 @@ windows:
 
 queries:
   # Captain's queries for MEVA G331, 7 March 2018 17:00-17:05 (relayed 2026-10-17), with Arabic rewrites.
-  - {id: c01, register: jordanian, source: captain, story: suspect, text: "امراة تلبس جاكيت سكني او ابيض", english: "a woman wearing a grey or white jacket", targets: [g331-0307-grey-jacket-woman, g331-0307-cream-jacket-woman], filter: *g331_0307}
-  - {id: c02, register: jordanian, source: captain, story: suspect, text: "معهها شنطة بنية او لونها بيج", english: "she has a brown or beige bag", targets: [g331-0307-grey-jacket-woman, g331-0307-grey-jacket-woman-bag, g331-0307-tan-bag-woman, g331-0307-cream-bag-woman], filter: *g331_0307}
-  - {id: c03, register: formal, story: suspect, text: "امرأة ترتدي جاكيتاً رمادياً أو أبيض وتحمل حقيبة بنية أو بيج", english: "a woman in a grey or white jacket carrying a brown or beige bag", targets: [g331-0307-grey-jacket-woman, g331-0307-grey-jacket-woman-bag], filter: *g331_0307}
-  - {id: c04, register: jordanian, story: suspect, text: "مرة لابسة جاكيت سكني أو أبيض ومعها شنتة بيج", english: "a woman in a grey or white jacket with a beige bag", targets: [g331-0307-grey-jacket-woman, g331-0307-grey-jacket-woman-bag], filter: *g331_0307}
-  - {id: c05, register: english, source: captain, story: suspect, text: "woman wearing red jacket", targets: [g331-0307-red-jacket-women], filter: *g331_0307}
-  - {id: c06, register: formal, story: suspect, text: "امرأة ترتدي سترة حمراء", english: "a woman wearing a red jacket", targets: [g331-0307-red-jacket-women], filter: *g331_0307}
-  - {id: c07, register: jordanian, story: suspect, text: "مرة لابسة جاكيت أحمر", english: "a woman wearing a red jacket", targets: [g331-0307-red-jacket-women], filter: *g331_0307}
-  - {id: c08, register: gulf, story: suspect, text: "حرمة لابسة جاكيت أحمر", english: "a woman wearing a red jacket", targets: [g331-0307-red-jacket-women], filter: *g331_0307}
-  - {id: c09, register: english, source: captain, story: suspect, text: "man has a walkig suitecase bag", targets: [g331-0307-suitcase-men, g331-0307-wheeled-suitcases], filter: *g331_0307}
-  - {id: c10, register: formal, story: suspect, text: "رجل يجر حقيبة سفر بعجلات", english: "a man pulling a wheeled suitcase", targets: [g331-0307-suitcase-men, g331-0307-wheeled-suitcases], filter: *g331_0307}
-  - {id: c11, register: jordanian, story: suspect, text: "زلمة بيجر شنتة سفر", english: "a man pulling a suitcase", targets: [g331-0307-suitcase-men, g331-0307-wheeled-suitcases], filter: *g331_0307}
-  - {id: c12, register: gulf, story: suspect, text: "رجّال يسحب شنطة سفر", english: "a man pulling a suitcase", targets: [g331-0307-suitcase-men, g331-0307-wheeled-suitcases], filter: *g331_0307}
-  - {id: c13, register: english, source: captain, story: suspect, text: "man wearing brown trousers", targets: [g331-0307-tan-trousers-man], filter: *g331_0307}
-  - {id: c14, register: formal, story: suspect, text: "رجل يرتدي بنطالاً بنياً", english: "a man wearing brown trousers", targets: [g331-0307-tan-trousers-man], filter: *g331_0307}
-  - {id: c15, register: jordanian, story: suspect, text: "زلمة لابس بنطلون بني", english: "a man wearing brown trousers", targets: [g331-0307-tan-trousers-man], filter: *g331_0307}
-  - {id: c16, register: gulf, story: suspect, text: "رجّال لابس سروال بني", english: "a man wearing brown trousers", targets: [g331-0307-tan-trousers-man], filter: *g331_0307}
-  - {id: c17, register: english, source: captain, story: suspect, text: "woman with blonde hair", targets: [g331-0307-blonde-woman], filter: *g331_0307}
-  - {id: c18, register: formal, story: suspect, text: "امرأة ذات شعر أشقر", english: "a woman with blonde hair", targets: [g331-0307-blonde-woman], filter: *g331_0307}
-  - {id: c19, register: jordanian, story: suspect, text: "مرة شعرها أشقر", english: "a woman with blonde hair", targets: [g331-0307-blonde-woman], filter: *g331_0307}
-  - {id: c20, register: gulf, story: suspect, text: "حرمة شعرها أشقر", english: "a woman with blonde hair", targets: [g331-0307-blonde-woman], filter: *g331_0307}
-  - {id: c21, register: english, source: captain, story: suspect, text: "man has an ipad", targets: [g331-0307-tan-trousers-man], filter: *g331_0307}
-  - {id: c22, register: formal, story: suspect, text: "رجل يحمل جهازاً لوحياً", english: "a man holding a tablet", targets: [g331-0307-tan-trousers-man], filter: *g331_0307}
-  - {id: c23, register: jordanian, story: suspect, text: "زلمة معه آيباد", english: "a man with an iPad", targets: [g331-0307-tan-trousers-man], filter: *g331_0307}
-  - {id: c24, register: gulf, story: suspect, text: "رجّال وياه آيباد", english: "a man with an iPad", targets: [g331-0307-tan-trousers-man], filter: *g331_0307}
+  - {id: c01, register: jordanian, source: captain, story: suspect, text: "امراة تلبس جاكيت سكني او ابيض", english: "a woman wearing a grey or white jacket", targets: [g331-0307-grey-jacket-woman, g331-0307-cream-jacket-woman], filter: *g331_0307, fields: {gender: female, upper: {garment: [jacket, coat], colours: [grey, white]}}}
+  - {id: c02, register: jordanian, source: captain, story: suspect, text: "معهها شنطة بنية او لونها بيج", english: "she has a brown or beige bag", targets: [g331-0307-grey-jacket-woman, g331-0307-grey-jacket-woman-bag, g331-0307-tan-bag-woman, g331-0307-cream-bag-woman], filter: *g331_0307, fields: {gender: female, carried: [{object: [bag, handbag], colours: [brown, beige]}]}}
+  - {id: c03, register: formal, story: suspect, text: "امرأة ترتدي جاكيتاً رمادياً أو أبيض وتحمل حقيبة بنية أو بيج", english: "a woman in a grey or white jacket carrying a brown or beige bag", targets: [g331-0307-grey-jacket-woman, g331-0307-grey-jacket-woman-bag], filter: *g331_0307, fields: {gender: female, upper: {garment: [jacket, coat], colours: [grey, white]}, carried: [{object: [bag, handbag], colours: [brown, beige]}]}}
+  - {id: c04, register: jordanian, story: suspect, text: "مرة لابسة جاكيت سكني أو أبيض ومعها شنتة بيج", english: "a woman in a grey or white jacket with a beige bag", targets: [g331-0307-grey-jacket-woman, g331-0307-grey-jacket-woman-bag], filter: *g331_0307, fields: {gender: female, upper: {garment: [jacket, coat], colours: [grey, white]}, carried: [{object: [bag, handbag], colours: [beige]}]}}
+  - {id: c05, register: english, source: captain, story: suspect, text: "woman wearing red jacket", targets: [g331-0307-red-jacket-women], filter: *g331_0307, fields: {gender: female, upper: {garment: [jacket, coat], colours: [red]}}}
+  - {id: c06, register: formal, story: suspect, text: "امرأة ترتدي سترة حمراء", english: "a woman wearing a red jacket", targets: [g331-0307-red-jacket-women], filter: *g331_0307, fields: {gender: female, upper: {garment: [jacket, coat], colours: [red]}}}
+  - {id: c07, register: jordanian, story: suspect, text: "مرة لابسة جاكيت أحمر", english: "a woman wearing a red jacket", targets: [g331-0307-red-jacket-women], filter: *g331_0307, fields: {gender: female, upper: {garment: [jacket, coat], colours: [red]}}}
+  - {id: c08, register: gulf, story: suspect, text: "حرمة لابسة جاكيت أحمر", english: "a woman wearing a red jacket", targets: [g331-0307-red-jacket-women], filter: *g331_0307, fields: {gender: female, upper: {garment: [jacket, coat], colours: [red]}}}
+  - {id: c09, register: english, source: captain, story: suspect, text: "man has a walkig suitecase bag", targets: [g331-0307-suitcase-men, g331-0307-wheeled-suitcases], filter: *g331_0307, fields: {gender: male, carried: [{object: suitcase}]}}
+  - {id: c10, register: formal, story: suspect, text: "رجل يجر حقيبة سفر بعجلات", english: "a man pulling a wheeled suitcase", targets: [g331-0307-suitcase-men, g331-0307-wheeled-suitcases], filter: *g331_0307, fields: {gender: male, carried: [{object: suitcase}]}}
+  - {id: c11, register: jordanian, story: suspect, text: "زلمة بيجر شنتة سفر", english: "a man pulling a suitcase", targets: [g331-0307-suitcase-men, g331-0307-wheeled-suitcases], filter: *g331_0307, fields: {gender: male, carried: [{object: suitcase}]}}
+  - {id: c12, register: gulf, story: suspect, text: "رجّال يسحب شنطة سفر", english: "a man pulling a suitcase", targets: [g331-0307-suitcase-men, g331-0307-wheeled-suitcases], filter: *g331_0307, fields: {gender: male, carried: [{object: suitcase}]}}
+  - {id: c13, register: english, source: captain, story: suspect, text: "man wearing brown trousers", targets: [g331-0307-tan-trousers-man], filter: *g331_0307, fields: {gender: male, lower: {garment: trousers, colours: [brown]}}}
+  - {id: c14, register: formal, story: suspect, text: "رجل يرتدي بنطالاً بنياً", english: "a man wearing brown trousers", targets: [g331-0307-tan-trousers-man], filter: *g331_0307, fields: {gender: male, lower: {garment: trousers, colours: [brown]}}}
+  - {id: c15, register: jordanian, story: suspect, text: "زلمة لابس بنطلون بني", english: "a man wearing brown trousers", targets: [g331-0307-tan-trousers-man], filter: *g331_0307, fields: {gender: male, lower: {garment: trousers, colours: [brown]}}}
+  - {id: c16, register: gulf, story: suspect, text: "رجّال لابس سروال بني", english: "a man wearing brown trousers", targets: [g331-0307-tan-trousers-man], filter: *g331_0307, fields: {gender: male, lower: {garment: trousers, colours: [brown]}}}
+  - {id: c17, register: english, source: captain, story: suspect, text: "woman with blonde hair", targets: [g331-0307-blonde-woman], filter: *g331_0307, fields: {gender: female, hair: {colour: blonde}}}
+  - {id: c18, register: formal, story: suspect, text: "امرأة ذات شعر أشقر", english: "a woman with blonde hair", targets: [g331-0307-blonde-woman], filter: *g331_0307, fields: {gender: female, hair: {colour: blonde}}}
+  - {id: c19, register: jordanian, story: suspect, text: "مرة شعرها أشقر", english: "a woman with blonde hair", targets: [g331-0307-blonde-woman], filter: *g331_0307, fields: {gender: female, hair: {colour: blonde}}}
+  - {id: c20, register: gulf, story: suspect, text: "حرمة شعرها أشقر", english: "a woman with blonde hair", targets: [g331-0307-blonde-woman], filter: *g331_0307, fields: {gender: female, hair: {colour: blonde}}}
+  - {id: c21, register: english, source: captain, story: suspect, text: "man has an ipad", targets: [g331-0307-tan-trousers-man], filter: *g331_0307, fields: {gender: male, carried: [{object: tablet}]}}
+  - {id: c22, register: formal, story: suspect, text: "رجل يحمل جهازاً لوحياً", english: "a man holding a tablet", targets: [g331-0307-tan-trousers-man], filter: *g331_0307, fields: {gender: male, carried: [{object: tablet}]}}
+  - {id: c23, register: jordanian, story: suspect, text: "زلمة معه آيباد", english: "a man with an iPad", targets: [g331-0307-tan-trousers-man], filter: *g331_0307, fields: {gender: male, carried: [{object: tablet}]}}
+  - {id: c24, register: gulf, story: suspect, text: "رجّال وياه آيباد", english: "a man with an iPad", targets: [g331-0307-tan-trousers-man], filter: *g331_0307, fields: {gender: male, carried: [{object: tablet}]}}
 
   # Suspect story across three school cameras in one 5-minute window (15 March 2018).
-  - {id: s01, register: formal, story: suspect, text: "شخص يرتدي سترة حمراء بقلنسوة", english: "a person in a red hooded top", targets: [school-red-hoodie], filter: *school}
-  - {id: s02, register: jordanian, story: suspect, text: "واحد لابس هودي أحمر", english: "someone wearing a red hoodie", targets: [school-red-hoodie], filter: *school}
-  - {id: s03, register: english, story: suspect, text: "a person in a red hoodie", targets: [school-red-hoodie], filter: *school}
-  - {id: s04, register: formal, story: suspect, text: "امرأة مسنّة ترتدي سترة بيج وبنطالاً أحمر وتدفع عربة", english: "an older woman in a beige jacket and red trousers pushing a cart", targets: [school-cart-woman], filter: *school}
-  - {id: s05, register: jordanian, story: suspect, text: "ختيارة لابسة جاكيت بيج وبنطلون أحمر ومعها عرباية", english: "an old woman in a beige jacket and red trousers with a cart", targets: [school-cart-woman], filter: *school}
-  - {id: s06, register: gulf, story: suspect, text: "عجوز لابسة جاكيت بيج وسروال أحمر وتدف عربانة", english: "an old woman in a beige jacket and red trousers pushing a cart", targets: [school-cart-woman], filter: *school}
-  - {id: s07, register: formal, story: suspect, text: "رجل يرتدي قبعة بيضاء ويحمل حقيبة ظهر", english: "a man in a white cap carrying a backpack", targets: [school-white-cap-backpack-man], filter: *school}
-  - {id: s08, register: gulf, story: suspect, text: "رجّال لابس كاب أبيض وشايل شنطة ظهر", english: "a man in a white cap carrying a backpack", targets: [school-white-cap-backpack-man], filter: *school}
-  - {id: s09, register: formal, story: suspect, text: "رجل يرتدي سترة رمادية بقلنسوة وبنطالاً مموهاً", english: "a man in a grey hoodie and camouflage trousers", targets: [school-grey-hoodie-camo], filter: *school}
-  - {id: s10, register: jordanian, story: suspect, text: "زلمة لابس هودي سكني وبنطلون مرقّط", english: "a man in a grey hoodie and camo trousers", targets: [school-grey-hoodie-camo], filter: *school}
-  - {id: s11, register: formal, story: suspect, text: "شخص يرتدي كنزة زرقاء فاتحة", english: "a person in a light blue sweater", targets: [school-light-blue-sweater], filter: *school}
+  - {id: s01, register: formal, story: suspect, text: "شخص يرتدي سترة حمراء بقلنسوة", english: "a person in a red hooded top", targets: [school-red-hoodie], filter: *school, fields: {upper: {garment: [hoodie, jacket], colours: [red]}}}
+  - {id: s02, register: jordanian, story: suspect, text: "واحد لابس هودي أحمر", english: "someone wearing a red hoodie", targets: [school-red-hoodie], filter: *school, fields: {gender: [null, male], upper: {garment: hoodie, colours: [red]}}}
+  - {id: s03, register: english, story: suspect, text: "a person in a red hoodie", targets: [school-red-hoodie], filter: *school, fields: {upper: {garment: hoodie, colours: [red]}}}
+  - {id: s04, register: formal, story: suspect, text: "امرأة مسنّة ترتدي سترة بيج وبنطالاً أحمر وتدفع عربة", english: "an older woman in a beige jacket and red trousers pushing a cart", targets: [school-cart-woman], filter: *school, fields: {gender: female, age_band: elderly, upper: {garment: [jacket, coat], colours: [beige]}, lower: {garment: trousers, colours: [red]}, carried: [{object: cart}]}}
+  - {id: s05, register: jordanian, story: suspect, text: "ختيارة لابسة جاكيت بيج وبنطلون أحمر ومعها عرباية", english: "an old woman in a beige jacket and red trousers with a cart", targets: [school-cart-woman], filter: *school, fields: {gender: female, age_band: elderly, upper: {garment: [jacket, coat], colours: [beige]}, lower: {garment: trousers, colours: [red]}, carried: [{object: cart}]}}
+  - {id: s06, register: gulf, story: suspect, text: "عجوز لابسة جاكيت بيج وسروال أحمر وتدف عربانة", english: "an old woman in a beige jacket and red trousers pushing a cart", targets: [school-cart-woman], filter: *school, fields: {gender: female, age_band: elderly, upper: {garment: [jacket, coat], colours: [beige]}, lower: {garment: trousers, colours: [red]}, carried: [{object: cart}]}}
+  - {id: s07, register: formal, story: suspect, text: "رجل يرتدي قبعة بيضاء ويحمل حقيبة ظهر", english: "a man in a white cap carrying a backpack", targets: [school-white-cap-backpack-man], filter: *school, fields: {gender: male, headwear: {type: [cap, hat], colours: [white]}, carried: [{object: backpack}]}}
+  - {id: s08, register: gulf, story: suspect, text: "رجّال لابس كاب أبيض وشايل شنطة ظهر", english: "a man in a white cap carrying a backpack", targets: [school-white-cap-backpack-man], filter: *school, fields: {gender: male, headwear: {type: cap, colours: [white]}, carried: [{object: backpack}]}}
+  - {id: s09, register: formal, story: suspect, text: "رجل يرتدي سترة رمادية بقلنسوة وبنطالاً مموهاً", english: "a man in a grey hoodie and camouflage trousers", targets: [school-grey-hoodie-camo], filter: *school, fields: {gender: male, upper: {garment: [hoodie, jacket], colours: [grey]}, lower: {garment: trousers, colours: [[], [green]]}}}
+  - {id: s10, register: jordanian, story: suspect, text: "زلمة لابس هودي سكني وبنطلون مرقّط", english: "a man in a grey hoodie and camo trousers", targets: [school-grey-hoodie-camo], filter: *school, fields: {gender: male, upper: {garment: hoodie, colours: [grey]}, lower: {garment: trousers, colours: [[], [green]]}}}
+  - {id: s11, register: formal, story: suspect, text: "شخص يرتدي كنزة زرقاء فاتحة", english: "a person in a light blue sweater", targets: [school-light-blue-sweater], filter: *school, fields: {upper: {garment: sweater, colours: [blue]}}}
 
   # Left bag story, as a search for the bag.
-  - {id: b01, register: formal, story: left-bag, text: "حقيبة سفر بنية مزخرفة", english: "a patterned brown suitcase", targets: [g331-0307-brown-suitcases], filter: *g331_0307}
-  - {id: b02, register: gulf, story: left-bag, text: "شنطة سفر بنية", english: "a brown suitcase", targets: [g331-0307-brown-suitcases], filter: *g331_0307}
-  - {id: b03, register: formal, story: left-bag, text: "حقيبة ظهر خضراء على مقعد", english: "a green backpack on a seat", targets: [g331-0315-green-backpack], filter: *g331_0315}
-  - {id: b04, register: jordanian, story: left-bag, text: "شنتة ظهر خضرا على الكرسي", english: "a green backpack on the chair", targets: [g331-0315-green-backpack], filter: *g331_0315}
-  - {id: b05, register: formal, story: suspect, text: "امرأة شقراء ترتدي قميصاً أزرق", english: "a blonde woman in a blue shirt", targets: [g331-0315-blonde-blue-shirt-woman], filter: *g331_0315}
+  - {id: b01, register: formal, story: left-bag, text: "حقيبة سفر بنية مزخرفة", english: "a patterned brown suitcase", targets: [g331-0307-brown-suitcases], filter: *g331_0307, fields: {subject: bag, carried: [{object: suitcase, colours: [brown]}]}}
+  - {id: b02, register: gulf, story: left-bag, text: "شنطة سفر بنية", english: "a brown suitcase", targets: [g331-0307-brown-suitcases], filter: *g331_0307, fields: {subject: bag, carried: [{object: suitcase, colours: [brown]}]}}
+  - {id: b03, register: formal, story: left-bag, text: "حقيبة ظهر خضراء على مقعد", english: "a green backpack on a seat", targets: [g331-0315-green-backpack], filter: *g331_0315, fields: {subject: bag, carried: [{object: backpack, colours: [green]}]}}
+  - {id: b04, register: jordanian, story: left-bag, text: "شنتة ظهر خضرا على الكرسي", english: "a green backpack on the chair", targets: [g331-0315-green-backpack], filter: *g331_0315, fields: {subject: bag, carried: [{object: backpack, colours: [green]}]}}
+  - {id: b05, register: formal, story: suspect, text: "امرأة شقراء ترتدي قميصاً أزرق", english: "a blonde woman in a blue shirt", targets: [g331-0315-blonde-blue-shirt-woman], filter: *g331_0315, fields: {gender: female, hair: {colour: blonde}, upper: {garment: shirt, colours: [blue]}}}
 
   # Lost child story on the synthetic store cameras: a synthetic child-sized girl stands in.
-  - {id: l01, register: formal, story: lost-child, text: "طفلة ترتدي قميصاً أبيض وبنطال جينز", english: "a girl in a white shirt and jeans", targets: [nv-girl-white-shirt], filter: *store}
-  - {id: l02, register: jordanian, story: lost-child, text: "بنت صغيرة لابسة بلوزة بيضا وجينز", english: "a little girl in a white top and jeans", targets: [nv-girl-white-shirt], filter: *store}
-  - {id: l03, register: gulf, story: lost-child, text: "بنية صغيرة لابسة قميص أبيض وجينز", english: "a little girl in a white shirt and jeans", targets: [nv-girl-white-shirt], filter: *store}
-  - {id: l04, register: formal, story: lost-child, text: "امرأة ترتدي فستاناً أحمر مشجراً", english: "a woman in a red floral dress", targets: [nv-red-floral-dress], filter: *store}
-  - {id: l05, register: gulf, story: lost-child, text: "حرمة لابسة فستان أحمر", english: "a woman in a red dress", targets: [nv-red-floral-dress], filter: *store}
-  - {id: l06, register: formal, story: lost-child, text: "امرأة ترتدي بدلة وردية", english: "a woman in a pink suit", targets: [nv-pink-suit], filter: *store}
-  - {id: l07, register: jordanian, story: lost-child, text: "مرة لابسة بدلة زهر", english: "a woman in a pink suit", targets: [nv-pink-suit], filter: *store}
+  - {id: l01, register: formal, story: lost-child, text: "طفلة ترتدي قميصاً أبيض وبنطال جينز", english: "a girl in a white shirt and jeans", targets: [nv-girl-white-shirt], filter: *store, fields: {gender: female, age_band: child, upper: {garment: [shirt, top], colours: [white]}, lower: {garment: [jeans, trousers], colours: [[], [blue]]}}}
+  - {id: l02, register: jordanian, story: lost-child, text: "بنت صغيرة لابسة بلوزة بيضا وجينز", english: "a little girl in a white top and jeans", targets: [nv-girl-white-shirt], filter: *store, fields: {gender: female, age_band: child, upper: {garment: [top, shirt], colours: [white]}, lower: {garment: [jeans, trousers], colours: [[], [blue]]}}}
+  - {id: l03, register: gulf, story: lost-child, text: "بنية صغيرة لابسة قميص أبيض وجينز", english: "a little girl in a white shirt and jeans", targets: [nv-girl-white-shirt], filter: *store, fields: {gender: female, age_band: child, upper: {garment: [shirt, top], colours: [white]}, lower: {garment: [jeans, trousers], colours: [[], [blue]]}}}
+  - {id: l04, register: formal, story: lost-child, text: "امرأة ترتدي فستاناً أحمر مشجراً", english: "a woman in a red floral dress", targets: [nv-red-floral-dress], filter: *store, fields: {gender: female, upper: {garment: dress, colours: [red]}}}
+  - {id: l05, register: gulf, story: lost-child, text: "حرمة لابسة فستان أحمر", english: "a woman in a red dress", targets: [nv-red-floral-dress], filter: *store, fields: {gender: female, upper: {garment: dress, colours: [red]}}}
+  - {id: l06, register: formal, story: lost-child, text: "امرأة ترتدي بدلة وردية", english: "a woman in a pink suit", targets: [nv-pink-suit], filter: *store, fields: {gender: female, upper: {garment: suit, colours: [pink]}}}
+  - {id: l07, register: jordanian, story: lost-child, text: "مرة لابسة بدلة زهر", english: "a woman in a pink suit", targets: [nv-pink-suit], filter: *store, fields: {gender: female, upper: {garment: suit, colours: [pink]}}}
 
   # Nobody in the public footage wears Arabic dress (a known gap of the starter set).
-  - {id: n01, register: formal, story: suspect, expect: no-match, text: "رجل يرتدي ثوباً أبيض وشماغاً أحمر", english: "a man in a white thobe and a red shemagh", targets: []}
+  - {id: n01, register: formal, story: suspect, expect: no-match, text: "رجل يرتدي ثوباً أبيض وشماغاً أحمر", english: "a man in a white thobe and a red shemagh", targets: [], fields: {gender: male, upper: {garment: thobe, colours: [white]}, headwear: {type: shemagh, colours: [red]}}}
+
+  # Added in phase 2: more phrasings of the targets above, in every register, including mixed Arabic and English.
+  - {id: p01, register: gulf, added: phase2, story: suspect, text: "حرمة لابسة جاكيت رمادي وشايلة شنطة بيج", english: "a woman in a grey jacket carrying a beige bag", targets: [g331-0307-grey-jacket-woman, g331-0307-grey-jacket-woman-bag], filter: *g331_0307, fields: {gender: female, upper: {garment: [jacket, coat], colours: [grey]}, carried: [{object: [bag, handbag], colours: [beige]}]}}
+  - {id: p02, register: mixed, added: phase2, story: suspect, text: "woman لابسة grey jacket ومعها beige bag", english: "a woman in a grey jacket with a beige bag", targets: [g331-0307-grey-jacket-woman, g331-0307-grey-jacket-woman-bag], filter: *g331_0307, fields: {gender: female, upper: {garment: [jacket, coat], colours: [grey]}, carried: [{object: [bag, handbag], colours: [beige]}]}}
+  - {id: p03, register: formal, added: phase2, story: suspect, text: "امرأة ترتدي سترة رمادية فاتحة ووشاحاً بيج وتحمل حقيبة كتف", english: "a woman in a light grey jacket and a beige scarf carrying a shoulder bag", targets: [g331-0307-grey-jacket-woman, g331-0307-grey-jacket-woman-bag], filter: *g331_0307, fields: {gender: female, upper: {garment: [jacket, coat], colours: [grey]}, carried: [{object: [handbag, bag]}]}}
+  - {id: p04, register: formal, added: phase2, story: suspect, text: "امرأة ذات شعر أسود طويل ترتدي معطفاً منفوخاً أبيض", english: "a woman with long black hair in a white puffer coat", targets: [g331-0307-cream-jacket-woman], filter: *g331_0307, fields: {gender: female, upper: {garment: [coat, jacket], colours: [white]}, hair: {colour: black, length: long}}}
+  - {id: p05, register: jordanian, added: phase2, story: suspect, text: "مرة شعرها طويل وأسود لابسة جاكيت أبيض منفوخ", english: "a woman with long black hair in a white puffer jacket", targets: [g331-0307-cream-jacket-woman], filter: *g331_0307, fields: {gender: female, upper: {garment: [jacket, coat], colours: [white]}, hair: {colour: black, length: long}}}
+  - {id: p06, register: mixed, added: phase2, story: suspect, text: "woman بشعر أسود طويل لابسة white puffer jacket", english: "a woman with long black hair in a white puffer jacket", targets: [g331-0307-cream-jacket-woman], filter: *g331_0307, fields: {gender: female, upper: {garment: [jacket, coat], colours: [white]}, hair: {colour: black, length: long}}}
+  - {id: p07, register: formal, added: phase2, story: suspect, text: "امرأة ذات شعر مجعد تحمل حقيبة جلدية كبيرة بنية فاتحة", english: "a woman with curly hair carrying a large light brown leather bag", targets: [g331-0307-tan-bag-woman], filter: *g331_0307, fields: {gender: female, carried: [{object: [bag, handbag], colours: [[brown], [beige], [brown, beige]]}]}}
+  - {id: p08, register: gulf, added: phase2, story: suspect, text: "حرمة شعرها كيرلي وشايلة شنطة جلد كبيرة", english: "a woman with curly hair carrying a large leather bag", targets: [g331-0307-tan-bag-woman], filter: *g331_0307, fields: {gender: female, carried: [{object: [bag, handbag]}]}}
+  - {id: p09, register: formal, added: phase2, story: suspect, text: "امرأة ترتدي سترة سوداء ونظارة وتحمل حقيبة كتف بيضاء", english: "a woman in a black jacket and glasses carrying a white shoulder bag", targets: [g331-0307-cream-bag-woman], filter: *g331_0307, fields: {gender: female, upper: {garment: [jacket, coat], colours: [black]}, carried: [{object: [handbag, bag], colours: [white]}]}}
+  - {id: p10, register: jordanian, added: phase2, story: suspect, text: "مرة لابسة جاكيت أسود ونظارات ومعها شنتة بيضا", english: "a woman in a black jacket and glasses with a white bag", targets: [g331-0307-cream-bag-woman], filter: *g331_0307, fields: {gender: female, upper: {garment: [jacket, coat], colours: [black]}, carried: [{object: [bag, handbag], colours: [white]}]}}
+  - {id: p11, register: mixed, added: phase2, story: suspect, text: "مرة لابسة red jacket", english: "a woman wearing a red jacket", targets: [g331-0307-red-jacket-women], filter: *g331_0307, fields: {gender: female, upper: {garment: [jacket, coat], colours: [red]}}}
+  - {id: p12, register: mixed, added: phase2, story: suspect, text: "رجل معه suitcase بعجلات", english: "a man with a wheeled suitcase", targets: [g331-0307-suitcase-men, g331-0307-wheeled-suitcases], filter: *g331_0307, fields: {gender: male, carried: [{object: suitcase}]}}
+  - {id: p13, register: jordanian, added: phase2, story: left-bag, text: "شنتة سفر بني منقوشة", english: "a patterned brown suitcase", targets: [g331-0307-brown-suitcases], filter: *g331_0307, fields: {subject: bag, carried: [{object: suitcase, colours: [brown]}]}}
+  - {id: p14, register: mixed, added: phase2, story: left-bag, text: "brown suitcase عليها نقشة", english: "a brown suitcase with a pattern", targets: [g331-0307-brown-suitcases], filter: *g331_0307, fields: {subject: bag, carried: [{object: suitcase, colours: [brown]}]}}
+  - {id: p15, register: formal, added: phase2, story: suspect, text: "رجل يرتدي سترة زيتية وقبعة صوفية رمادية", english: "a man in an olive jacket and a grey beanie", targets: [g331-0307-tan-trousers-man], filter: *g331_0307, fields: {gender: male, upper: {garment: [jacket, coat], colours: [green]}, headwear: {type: beanie, colours: [grey]}}}
+  - {id: p16, register: gulf, added: phase2, story: suspect, text: "رجّال لابس طاقية صوف رمادية وجاكيت زيتي", english: "a man in a grey wool beanie and an olive jacket", targets: [g331-0307-tan-trousers-man], filter: *g331_0307, fields: {gender: male, upper: {garment: [jacket, coat], colours: [green]}, headwear: {type: [beanie, hat], colours: [grey]}}}
+  - {id: p17, register: mixed, added: phase2, story: suspect, text: "رجل لابس beanie رمادي و jacket زيتي", english: "a man in a grey beanie and an olive jacket", targets: [g331-0307-tan-trousers-man], filter: *g331_0307, fields: {gender: male, upper: {garment: [jacket, coat], colours: [green]}, headwear: {type: beanie, colours: [grey]}}}
+  - {id: p18, register: mixed, added: phase2, story: suspect, text: "رجل ماسك iPad", english: "a man holding an iPad", targets: [g331-0307-tan-trousers-man], filter: *g331_0307, fields: {gender: male, carried: [{object: tablet}]}}
+  - {id: p19, register: mixed, added: phase2, story: suspect, text: "مرة شعرها blonde", english: "a woman with blonde hair", targets: [g331-0307-blonde-woman], filter: *g331_0307, fields: {gender: female, hair: {colour: blonde}}}
+  - {id: p20, register: jordanian, added: phase2, story: suspect, text: "مرة شقرا لابسة قميص أزرق وبنطلون بيج", english: "a blonde woman in a blue shirt and beige trousers", targets: [g331-0315-blonde-blue-shirt-woman], filter: *g331_0315, fields: {gender: female, hair: {colour: blonde}, upper: {garment: shirt, colours: [blue]}, lower: {garment: trousers, colours: [beige]}}}
+  - {id: p21, register: gulf, added: phase2, story: suspect, text: "حرمة شعرها أشقر لابسة قميص أزرق", english: "a woman with blonde hair in a blue shirt", targets: [g331-0315-blonde-blue-shirt-woman], filter: *g331_0315, fields: {gender: female, hair: {colour: blonde}, upper: {garment: shirt, colours: [blue]}}}
+  - {id: p22, register: mixed, added: phase2, story: suspect, text: "blonde woman لابسة blue shirt", english: "a blonde woman in a blue shirt", targets: [g331-0315-blonde-blue-shirt-woman], filter: *g331_0315, fields: {gender: female, hair: {colour: blonde}, upper: {garment: shirt, colours: [blue]}}}
+  - {id: p23, register: gulf, added: phase2, story: left-bag, text: "شنطة ظهر زيتية على الكنبة", english: "an olive backpack on the bench", targets: [g331-0315-green-backpack], filter: *g331_0315, fields: {subject: bag, carried: [{object: backpack, colours: [green]}]}}
+  - {id: p24, register: mixed, added: phase2, story: left-bag, text: "green backpack على المقعد", english: "a green backpack on the seat", targets: [g331-0315-green-backpack], filter: *g331_0315, fields: {subject: bag, carried: [{object: backpack, colours: [green]}]}}
+  - {id: p25, register: gulf, added: phase2, story: suspect, text: "شخص لابس هودي أحمر", english: "a person wearing a red hoodie", targets: [school-red-hoodie], filter: *school, fields: {upper: {garment: hoodie, colours: [red]}}}
+  - {id: p26, register: mixed, added: phase2, story: suspect, text: "شخص لابس red hoodie", english: "a person wearing a red hoodie", targets: [school-red-hoodie], filter: *school, fields: {upper: {garment: hoodie, colours: [red]}}}
+  - {id: p27, register: mixed, added: phase2, story: suspect, text: "old woman لابسة beige jacket وتدفع cart", english: "an old woman in a beige jacket pushing a cart", targets: [school-cart-woman], filter: *school, fields: {gender: female, age_band: elderly, upper: {garment: [jacket, coat], colours: [beige]}, carried: [{object: cart}]}}
+  - {id: p28, register: jordanian, added: phase2, story: suspect, text: "زلمة لابس كاب أبيض وحامل شنتة ظهر", english: "a man in a white cap carrying a backpack", targets: [school-white-cap-backpack-man], filter: *school, fields: {gender: male, headwear: {type: cap, colours: [white]}, carried: [{object: backpack}]}}
+  - {id: p29, register: mixed, added: phase2, story: suspect, text: "رجل لابس white cap ومعه backpack", english: "a man in a white cap with a backpack", targets: [school-white-cap-backpack-man], filter: *school, fields: {gender: male, headwear: {type: cap, colours: [white]}, carried: [{object: backpack}]}}
+  - {id: p30, register: formal, added: phase2, story: suspect, text: "رجل يرتدي قميصاً عنابياً وبنطالاً بنياً وقبعة بيضاء", english: "a man in a maroon top, brown trousers and a white cap", targets: [school-white-cap-backpack-man], filter: *school, fields: {gender: male, upper: {garment: [shirt, top], colours: [red]}, lower: {garment: trousers, colours: [brown]}, headwear: {type: [cap, hat], colours: [white]}}}
+  - {id: p31, register: gulf, added: phase2, story: suspect, text: "رجّال لابس هودي رمادي وسروال عسكري", english: "a man in a grey hoodie and military trousers", targets: [school-grey-hoodie-camo], filter: *school, fields: {gender: male, upper: {garment: hoodie, colours: [grey]}, lower: {garment: trousers, colours: [[], [green]]}}}
+  - {id: p32, register: mixed, added: phase2, story: suspect, text: "رجل لابس grey hoodie وبنطلون camo", english: "a man in a grey hoodie and camo trousers", targets: [school-grey-hoodie-camo], filter: *school, fields: {gender: male, upper: {garment: hoodie, colours: [grey]}, lower: {garment: trousers, colours: [[], [green]]}}}
+  - {id: p33, register: jordanian, added: phase2, story: suspect, text: "واحد شعره رمادي قصير لابس كنزة زرقا فاتحة", english: "someone with short grey hair in a light blue sweater", targets: [school-light-blue-sweater], filter: *school, fields: {gender: [null, male], upper: {garment: sweater, colours: [blue]}, hair: {colour: grey, length: short}}}
+  - {id: p34, register: gulf, added: phase2, story: suspect, text: "شخص لابس بلوزة زرقا فاتحة", english: "a person in a light blue top", targets: [school-light-blue-sweater], filter: *school, fields: {upper: {garment: [top, sweater, shirt], colours: [blue]}}}
+  - {id: p35, register: mixed, added: phase2, story: suspect, text: "شخص لابس light blue sweater", english: "a person in a light blue sweater", targets: [school-light-blue-sweater], filter: *school, fields: {upper: {garment: sweater, colours: [blue]}}}
+  - {id: p36, register: mixed, added: phase2, story: lost-child, text: "طفلة لابسة white shirt وجينز", english: "a girl in a white shirt and jeans", targets: [nv-girl-white-shirt], filter: *store, fields: {gender: female, age_band: child, upper: {garment: [shirt, top], colours: [white]}, lower: {garment: [jeans, trousers], colours: [[], [blue]]}}}
+  - {id: p37, register: jordanian, added: phase2, story: lost-child, text: "مرة لابسة فستان أحمر مورّد", english: "a woman in a red floral dress", targets: [nv-red-floral-dress], filter: *store, fields: {gender: female, upper: {garment: dress, colours: [red]}}}
+  - {id: p38, register: mixed, added: phase2, story: lost-child, text: "امرأة لابسة red floral dress", english: "a woman in a red floral dress", targets: [nv-red-floral-dress], filter: *store, fields: {gender: female, upper: {garment: dress, colours: [red]}}}
+  - {id: p39, register: gulf, added: phase2, story: lost-child, text: "حرمة لابسة بدلة وردية", english: "a woman in a pink suit", targets: [nv-pink-suit], filter: *store, fields: {gender: female, upper: {garment: suit, colours: [pink]}}}
+  - {id: p40, register: mixed, added: phase2, story: lost-child, text: "مرة لابسة pink suit", english: "a woman in a pink suit", targets: [nv-pink-suit], filter: *store, fields: {gender: female, upper: {garment: suit, colours: [pink]}}}
+  - {id: p41, register: formal, added: phase2, story: lost-child, text: "طفلة صغيرة ذات شعر مربوط على شكل ذيل حصان", english: "a little girl with her hair in a ponytail", targets: [nv-girl-white-shirt], filter: *store, fields: {gender: female, age_band: child, hair: {length: [null, long]}}}
+  - {id: p42, register: gulf, added: phase2, story: lost-child, text: "بنية صغيرة شعرها ذيل حصان", english: "a little girl with a ponytail", targets: [nv-girl-white-shirt], filter: *store, fields: {gender: female, age_band: child, hair: {length: [null, long]}}}
+
+  # Added in phase 2: new targets, marked by eye from the indexed tracks of the school and store cameras.
+  - {id: p43, register: formal, added: phase2, story: suspect, text: "امرأة مسنة ذات شعر أبيض قصير ترتدي سترة كحلية وبنطالاً أسود", english: "an older woman with short white hair in a navy jacket and black trousers", targets: [school-white-hair-woman], filter: *school, fields: {gender: female, age_band: elderly, hair: {colour: [grey, null], length: [short, null]}, upper: {garment: [jacket, coat], colours: [blue]}, lower: {garment: trousers, colours: [black]}}}
+  - {id: p44, register: gulf, added: phase2, story: suspect, text: "عجوز شعرها أبيض قصير لابسة جاكيت كحلي وسروال أسود", english: "an old woman with short white hair in a navy jacket and black trousers", targets: [school-white-hair-woman], filter: *school, fields: {gender: female, age_band: elderly, hair: {colour: [grey, null], length: [short, null]}, upper: {garment: [jacket, coat], colours: [blue]}, lower: {garment: trousers, colours: [black]}}}
+  - {id: p45, register: mixed, added: phase2, story: suspect, text: "old woman بشعر أبيض قصير وبنطلون أسود", english: "an old woman with short white hair and black trousers", targets: [school-white-hair-woman], filter: *school, fields: {gender: female, age_band: elderly, hair: {colour: [grey, null], length: [short, null]}, lower: {garment: trousers, colours: [black]}}}
+  - {id: p46, register: formal, added: phase2, story: suspect, text: "امرأة ترتدي قبعة صوفية رمادية ووشاحاً أبيض وسترة كحلية", english: "a woman in a grey beanie, a white scarf and a navy jacket", targets: [school-grey-beanie-scarf-woman], filter: *school, fields: {gender: female, headwear: {type: beanie, colours: [grey]}, upper: {garment: [jacket, coat], colours: [blue]}}}
+  - {id: p47, register: jordanian, added: phase2, story: suspect, text: "مرة لابسة طاقية سكني وشال أبيض وجاكيت كحلي", english: "a woman in a grey beanie, a white scarf and a navy jacket", targets: [school-grey-beanie-scarf-woman], filter: *school, fields: {gender: female, headwear: {type: [beanie, hat], colours: [grey]}, upper: {garment: [jacket, coat], colours: [blue]}}}
+  - {id: p48, register: mixed, added: phase2, story: suspect, text: "woman لابسة grey beanie وscarf أبيض وبنطلون فاتح", english: "a woman in a grey beanie, a white scarf and light trousers", targets: [school-grey-beanie-scarf-woman], filter: *school, fields: {gender: female, headwear: {type: beanie, colours: [grey]}, lower: {garment: trousers, colours: [[], [white], [beige], [white, beige]]}}}
+  - {id: p49, register: formal, added: phase2, story: suspect, text: "رجل مسن يرتدي سترة مموهة بقلنسوة وقبعة سوداء", english: "an older man in a camouflage hoodie and a black cap", targets: [school-camo-hoodie-man], filter: *school, fields: {gender: male, age_band: elderly, upper: {garment: [hoodie, jacket], colours: [[], [green], [green, brown], [brown, green]]}, headwear: {type: [cap, hat], colours: [black]}}}
+  - {id: p50, register: jordanian, added: phase2, story: suspect, text: "ختيار لابس هودي مرقّط وكاب أسود", english: "an old man in a camo hoodie and a black cap", targets: [school-camo-hoodie-man], filter: *school, fields: {gender: male, age_band: elderly, upper: {garment: hoodie, colours: [[], [green], [green, brown], [brown, green]]}, headwear: {type: cap, colours: [black]}}}
+  - {id: p51, register: mixed, added: phase2, story: suspect, text: "old man لابس camo hoodie وكاب أسود", english: "an old man in a camo hoodie and a black cap", targets: [school-camo-hoodie-man], filter: *school, fields: {gender: male, age_band: elderly, upper: {garment: hoodie, colours: [[], [green], [green, brown], [brown, green]]}, headwear: {type: cap, colours: [black]}}}
+  - {id: p52, register: formal, added: phase2, story: suspect, text: "رجل يدفع دراجة هوائية", english: "a man pushing a bicycle", targets: [school-bicycle-man], filter: *school, fields: {gender: male, carried: [{object: bicycle}]}}
+  - {id: p53, register: jordanian, added: phase2, story: suspect, text: "زلمة ماشي جنب البسكليت", english: "a man walking beside a bicycle", targets: [school-bicycle-man], filter: *school, fields: {gender: male, carried: [{object: bicycle}]}}
+  - {id: p54, register: mixed, added: phase2, story: suspect, text: "رجل ماشي مع bicycle", english: "a man walking with a bicycle", targets: [school-bicycle-man], filter: *school, fields: {gender: male, carried: [{object: bicycle}]}}
+  - {id: p55, register: formal, added: phase2, story: lost-child, text: "رجل أصلع ذو لحية يرتدي قميص جينز أزرق", english: "a bald man with a beard in a blue denim shirt", targets: [nv-bald-denim-man], filter: *store, fields: {gender: male, upper: {garment: shirt, colours: [blue]}}}
+  - {id: p56, register: gulf, added: phase2, story: lost-child, text: "رجّال أصلع بلحية لابس قميص جينز", english: "a bald man with a beard in a denim shirt", targets: [nv-bald-denim-man], filter: *store, fields: {gender: male, upper: {garment: shirt, colours: [[], [blue]]}}}
+  - {id: p57, register: mixed, added: phase2, story: lost-child, text: "bald man لابس denim shirt وجينز", english: "a bald man in a denim shirt and jeans", targets: [nv-bald-denim-man], filter: *store, fields: {gender: male, upper: {garment: shirt, colours: [[], [blue]]}, lower: {garment: [jeans, trousers], colours: [[], [blue]]}}}
+  - {id: p58, register: formal, added: phase2, story: lost-child, text: "رجل يرتدي قميصاً قصير الأكمام عنابي اللون وبنطال جينز", english: "a man in a maroon short-sleeved top and jeans", targets: [nv-maroon-tshirt-man], filter: *store, fields: {gender: male, upper: {garment: [t-shirt, shirt, top], colours: [[red], [purple], [red, purple]]}, lower: {garment: [jeans, trousers], colours: [[], [blue]]}}}
+  - {id: p59, register: jordanian, added: phase2, story: lost-child, text: "زلمة لابس تيشيرت خمري وجينز", english: "a man in a maroon t-shirt and jeans", targets: [nv-maroon-tshirt-man], filter: *store, fields: {gender: male, upper: {garment: t-shirt, colours: [[red], [purple], [red, purple]]}, lower: {garment: [jeans, trousers], colours: [[], [blue]]}}}
+  - {id: p60, register: mixed, added: phase2, story: lost-child, text: "رجل لابس maroon t-shirt وجينز", english: "a man in a maroon t-shirt and jeans", targets: [nv-maroon-tshirt-man], filter: *store, fields: {gender: male, upper: {garment: t-shirt, colours: [[red], [purple], [red, purple]]}, lower: {garment: [jeans, trousers], colours: [[], [blue]]}}}
+  - {id: p61, register: formal, added: phase2, story: lost-child, text: "امرأة ذات شعر أشقر قصير ترتدي قميصاً رمادياً وبنطال جينز", english: "a woman with short blonde hair in a grey top and jeans", targets: [nv-blonde-bob-woman], filter: *store, fields: {gender: female, hair: {colour: blonde, length: short}, upper: {garment: [shirt, t-shirt, top], colours: [grey]}, lower: {garment: [jeans, trousers], colours: [[], [blue]]}}}
+  - {id: p62, register: gulf, added: phase2, story: lost-child, text: "حرمة شعرها أشقر قصير لابسة تيشيرت رمادي وجينز", english: "a woman with short blonde hair in a grey t-shirt and jeans", targets: [nv-blonde-bob-woman], filter: *store, fields: {gender: female, hair: {colour: blonde, length: short}, upper: {garment: t-shirt, colours: [grey]}, lower: {garment: [jeans, trousers], colours: [[], [blue]]}}}
+  - {id: p63, register: mixed, added: phase2, story: lost-child, text: "blonde woman بشعر قصير لابسة grey t-shirt", english: "a blonde woman with short hair in a grey t-shirt", targets: [nv-blonde-bob-woman], filter: *store, fields: {gender: female, hair: {colour: blonde, length: short}, upper: {garment: t-shirt, colours: [grey]}}}
+
+  # Nobody in the public footage wears Gulf or Levantine dress (added in phase 2, dialect phrasings).
+  - {id: n02, register: gulf, added: phase2, story: suspect, expect: no-match, text: "حرمة لابسة عباية سودا وشيلة", english: "a woman in a black abaya and headscarf", targets: [], fields: {gender: female, upper: {garment: abaya, colours: [black]}, headwear: {type: hijab, colours: [[], [black]]}}}
+  - {id: n03, register: jordanian, added: phase2, story: suspect, expect: no-match, text: "زلمة لابس شماغ أحمر وأبيض", english: "a man in a red and white shemagh", targets: [], fields: {gender: male, headwear: {type: shemagh, colours: [red, white]}}}

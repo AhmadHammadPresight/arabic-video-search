@@ -21,6 +21,7 @@ dependencies = [
     "trackers",
     "supervision",
     "truststore",
+    "mlx-vlm",
 ]
 
 [dependency-groups]

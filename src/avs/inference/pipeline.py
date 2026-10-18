@@ -17,13 +17,15 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
+from avs.inference.attributes import Describer
 from avs.inference.crops import (
+    CANDIDATES_PER_TRACK,
     MIN_CROP_HEIGHT,
     Candidate,
     TrackCandidates,
-    crop_quality,
     padded_box,
-    select_crops,
+    quality_parts,
+    select_crops_explained,
 )
 from avs.inference.detector import Detection, Detector
 from avs.inference.embedder import Embedder
@@ -62,14 +64,15 @@ class _TrackState:
         self.labels[det.label] += 1
         if det.box[3] - det.box[1] < MIN_CROP_HEIGHT[self.group]:
             return
-        quality = crop_quality(det.box, det.confidence, width, height)
+        parts = quality_parts(det.box, det.confidence, width, height)
+        quality = parts["confidence"] * parts["size"] * parts["edge"]
         if not self.pool.would_accept(quality):
             return
         x1, y1, x2, y2 = padded_box(det.box, width, height)
         image = Image.fromarray(frame[y1:y2, x1:x2])
         if image.height > CROP_MAX_HEIGHT:
             image = image.resize((max(1, round(image.width * CROP_MAX_HEIGHT / image.height)), CROP_MAX_HEIGHT))
-        self.pool.offer(Candidate(t=t, box=det.box, quality=quality, image=image))
+        self.pool.offer(Candidate(t=t, box=det.box, quality=quality, image=image, parts=parts))
 
 
 def index_video(
@@ -80,6 +83,7 @@ def index_video(
     embedder: Embedder,
     options: IndexOptions | None = None,
     info: VideoInfo | None = None,
+    describer: Describer | None = None,
 ) -> Iterator[dict]:
     started = time.monotonic()
     options = options or IndexOptions()
@@ -89,15 +93,24 @@ def index_video(
 
     tracker = MultiClassTracker(options.sample_fps)
     active: dict[str, _TrackState] = {}
-    finished = frames = 0
+    finished = frames = detections = dropped = 0
     next_progress = 0.0
+    attribute_seconds = [0.0]
 
     def finish(state: _TrackState) -> dict | None:
-        return _finish_track(state, info, crops_dir, crops_rel, embedder, options)
+        nonlocal dropped
+        event = _finish_track(state, info, crops_dir, crops_rel, embedder, options, describer)
+        if event is None:
+            dropped += 1
+        elif "attributes" in event:
+            attribute_seconds[0] += event["attributes"]["ms"] / 1000
+        return event
 
     for t, frame in iter_frames(video, options.sample_fps, info):
         frames += 1
-        for tracked in tracker.update(t, detector.detect(frame)):
+        found = detector.detect(frame)
+        detections += len(found)
+        for tracked in tracker.update(t, found):
             state = active.get(tracked.track_id)
             if state is None:
                 state = active[tracked.track_id] = _TrackState(tracked.track_id, group_of(tracked.detection.label))
@@ -114,7 +127,11 @@ def index_video(
         if (event := finish(state)) is not None:
             finished += 1
             yield event
-    yield {"type": "done", "tracks": finished, "frames": frames, "seconds": round(time.monotonic() - started, 2)}
+    done = {"type": "done", "tracks": finished, "frames": frames, "seconds": round(time.monotonic() - started, 2),
+            "detections": detections, "dropped_short_tracks": dropped}
+    if describer is not None:
+        done |= {"attributes_source": describer.source, "attributes_seconds": round(attribute_seconds[0], 2)}
+    yield done
 
 
 def _finish_track(
@@ -124,13 +141,14 @@ def _finish_track(
     crops_rel: str,
     embedder: Embedder,
     options: IndexOptions,
+    describer: Describer | None = None,
 ) -> dict | None:
     candidates = state.pool.candidates()
     if len(state.boxes) < options.min_track_detections or not candidates:
         return None
     t_start, t_end = state.boxes[0][0], state.boxes[-1][0]
     min_gap = max(0.5, (t_end - t_start) / (2 * options.crops_per_track))
-    chosen = select_crops(candidates, options.crops_per_track, min_gap)
+    chosen, notes = select_crops_explained(candidates, options.crops_per_track, min_gap)
     vectors = embedder.embed_images([c.image for c in chosen])
     crops = []
     for i, (cand, vector) in enumerate(zip(chosen, vectors, strict=True)):
@@ -144,7 +162,7 @@ def _finish_track(
             "embedding": [round(float(v), 6) for v in vector],
         })
     label = "person" if state.group == "person" else state.labels.most_common(1)[0][0]
-    return {
+    event = {
         "type": "track",
         "track_id": state.track_id,
         "label": label,
@@ -152,7 +170,15 @@ def _finish_track(
         "t_end": round(t_end, 3),
         "boxes": [[round(t, 3), *_normalise_box(box, info)] for t, box in state.boxes],
         "crops": crops,
+        "selection": {"min_gap": round(min_gap, 3), "pool_capacity": CANDIDATES_PER_TRACK,
+                      "detections": len(state.boxes), "labels": dict(state.labels), "candidates": notes},
     }
+    if describer is not None:
+        # The vision model sees the best crops first, so it gets the clearest views of the track.
+        best = sorted(chosen, key=lambda c: -c.quality)
+        described = describer.describe([c.image for c in best], vectors, state.group, label)
+        event["attributes"] = {"source": describer.source, **described}
+    return event
 
 
 def _normalise_box(box: tuple[float, float, float, float], info: VideoInfo) -> list[float]:

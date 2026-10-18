@@ -42,6 +42,8 @@ class SigLIP2Embedder:
         self._model = AutoModel.from_pretrained(model_name, revision=revision, dtype=self.dtype).to(device).eval()
         self._processor = AutoProcessor.from_pretrained(model_name, revision=revision)
         self.dim = int(self._model.config.text_config.projection_size)
+        # The learned temperature of SigLIP's image-text logits, used for zero-shot attribute prompts.
+        self.logit_scale = float(self._model.logit_scale.exp().item())
         self._lock = threading.Lock()
 
     def embed_images(self, images: list[Image.Image]) -> np.ndarray:

@@ -31,6 +31,27 @@ class InferenceClient:
     def embed_text(self, text: str) -> list[float]:
         return self.embed_texts([text])[0]
 
+    def check(self, crops: list[str], subject: str, english: str, details: list[str]) -> dict:
+        body = {"crops": crops, "subject": subject, "english": english, "details": details}
+        response = self._client.post("/v1/check", json=body, timeout=120.0)
+        if response.status_code != 200:
+            raise InferenceError(f"double-check failed: {response.status_code} {response.text}")
+        return response.json()
+
+    def describe(self, crops: list[str], subject: str, label: str, method: str) -> dict:
+        body = {"crops": crops, "subject": subject, "label": label, "method": method}
+        response = self._client.post("/v1/describe", json=body, timeout=120.0)
+        if response.status_code != 200:
+            raise InferenceError(f"describe failed: {response.status_code} {response.text}")
+        return response.json()
+
+    def trace_frames(self, recording_id: str, video_path: str, times: list[float]) -> dict:
+        body = {"recording_id": recording_id, "video_path": video_path, "times": times}
+        response = self._client.post("/v1/trace/frames", json=body, timeout=120.0)
+        if response.status_code != 200:
+            raise InferenceError(f"frame trace failed: {response.status_code} {response.text}")
+        return response.json()
+
     def index(self, recording_id: str, video_path: str, sample_fps: float | None = None) -> Iterator[dict]:
         body = {"recording_id": recording_id, "video_path": video_path, "sample_fps": sample_fps}
         with self._client.stream("POST", "/v1/index", json=body) as response:

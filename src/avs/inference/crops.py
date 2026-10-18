@@ -30,11 +30,19 @@ def touches_edge(box: Box, width: int, height: int) -> bool:
     return x1 <= EDGE_MARGIN or y1 <= EDGE_MARGIN or x2 >= width - EDGE_MARGIN or y2 >= height - EDGE_MARGIN
 
 
-def crop_quality(box: Box, confidence: float, width: int, height: int) -> float:
+def quality_parts(box: Box, confidence: float, width: int, height: int) -> dict[str, float]:
+    """The three factors of a crop's quality, kept so the recording trace can show why a crop was picked."""
     box_height = max(0.0, box[3] - box[1])
-    size = min(1.0, box_height / FULL_DETAIL_HEIGHT)
-    edge = 0.5 if touches_edge(box, width, height) else 1.0
-    return confidence * size * edge
+    return {
+        "confidence": confidence,
+        "size": min(1.0, box_height / FULL_DETAIL_HEIGHT),
+        "edge": 0.5 if touches_edge(box, width, height) else 1.0,
+    }
+
+
+def crop_quality(box: Box, confidence: float, width: int, height: int) -> float:
+    parts = quality_parts(box, confidence, width, height)
+    return parts["confidence"] * parts["size"] * parts["edge"]
 
 
 def padded_box(box: Box, width: int, height: int, pad: float = 0.08) -> tuple[int, int, int, int]:
@@ -54,6 +62,7 @@ class Candidate:
     box: Box
     quality: float
     image: Image.Image = field(repr=False)
+    parts: dict[str, float] = field(default_factory=dict, repr=False)
 
 
 _tiebreak = itertools.count()
@@ -85,16 +94,34 @@ def select_crops(candidates: list[Candidate], k: int, min_gap: float) -> list[Ca
 
     If the spacing rule leaves fewer than `k`, the best remaining crops fill the gap.
     """
+    return select_crops_explained(candidates, k, min_gap)[0]
+
+
+def select_crops_explained(candidates: list[Candidate], k: int, min_gap: float) -> tuple[list[Candidate], list[dict]]:
+    """`select_crops`, plus one note per candidate saying why it was or was not picked."""
     ranked = sorted(candidates, key=lambda c: c.quality, reverse=True)
     chosen: list[Candidate] = []
+    reasons: dict[int, str] = {}
     for cand in ranked:
         if len(chosen) == k:
-            break
-        if all(abs(cand.t - c.t) >= min_gap for c in chosen):
+            reasons.setdefault(id(cand), f"not needed: {k} crops already picked")
+            continue
+        near = next((c for c in chosen if abs(cand.t - c.t) < min_gap), None)
+        if near is None:
+            reasons[id(cand)] = "picked: best quality left" if chosen else "picked: best quality"
             chosen.append(cand)
+        else:
+            reasons[id(cand)] = f"skipped: within {min_gap:.1f} s of the better crop at {near.t:.2f} s"
     for cand in ranked:
         if len(chosen) == k:
             break
         if cand not in chosen:
+            reasons[id(cand)] = "picked to fill up: spacing left too few crops"
             chosen.append(cand)
-    return sorted(chosen, key=lambda c: c.t)
+    picked = {id(c) for c in chosen}
+    notes = [
+        {"t": round(c.t, 3), "quality": round(c.quality, 4), **{k_: round(v, 4) for k_, v in c.parts.items()},
+         "chosen": id(c) in picked, "reason": reasons[id(c)]}
+        for c in sorted(candidates, key=lambda c: c.t)
+    ]
+    return sorted(chosen, key=lambda c: c.t), notes

@@ -98,6 +98,20 @@ def iter_frames(path: Path, sample_fps: float, info: VideoInfo | None = None) ->
         raise MediaError(f"ffmpeg could not decode {path.name}: {stderr.strip()}")
 
 
+def read_frame(path: Path, t: float, info: VideoInfo | None = None) -> np.ndarray:
+    """One RGB frame at `t` seconds, decoded the same way as `iter_frames`."""
+    info = info or probe(path)
+    cmd = [
+        "ffmpeg", "-nostdin", "-loglevel", "error", "-hwaccel", "videotoolbox", "-ss", f"{t:.3f}",
+        "-i", str(path), "-an", "-sn", "-frames:v", "1", "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1",
+    ]
+    result = subprocess.run(cmd, capture_output=True)
+    frame_bytes = info.width * info.height * 3
+    if result.returncode != 0 or len(result.stdout) < frame_bytes:
+        raise MediaError(f"ffmpeg could not read the frame at {t:.2f}s of {path.name}: {result.stderr.decode(errors='replace').strip()}")
+    return np.frombuffer(result.stdout[:frame_bytes], dtype=np.uint8).reshape(info.height, info.width, 3)
+
+
 def encode_h264(src: Path, dst: Path, start: float | None = None, duration: float | None = None) -> None:
     """Write a silent, browser-playable H.264 MP4 copy of `src`, optionally trimmed."""
     info = probe(src)

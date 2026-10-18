@@ -64,3 +64,38 @@ def test_short_tracks_are_dropped(moving_box_video, tmp_path):
     events = list(index_video(moving_box_video, tmp_path / "c", "c", RedBoxDetector(), MeanColourEmbedder(), options))
     assert not [e for e in events if e["type"] == "track"]
     assert events[-1]["tracks"] == 0
+
+
+class CountingDescriber:
+    source = "test-describer"
+
+    def __init__(self) -> None:
+        self.calls = []
+
+    def describe(self, images, vectors, subject, label):
+        self.calls.append((len(images), vectors.shape, subject, label))
+        return {"attributes": {"subject": subject, "upper": {"garment": None, "colours": ["red"]}}, "ms": 250}
+
+
+def test_tracks_carry_their_crop_selection_and_attributes(moving_box_video, tmp_path):
+    describer = CountingDescriber()
+    options = IndexOptions(sample_fps=4, crops_per_track=3, min_track_detections=3)
+    events = list(index_video(moving_box_video, tmp_path / "c", "c", RedBoxDetector(), MeanColourEmbedder(), options,
+                              describer=describer))
+    [track] = [e for e in events if e["type"] == "track"]
+    selection = track["selection"]
+    assert selection["pool_capacity"] == 12 and selection["detections"] == len(track["boxes"])
+    assert selection["labels"] == {"person": len(track["boxes"])}
+    assert sum(c["chosen"] for c in selection["candidates"]) == 3
+    assert all({"t", "quality", "confidence", "size", "edge", "reason"} <= set(c) for c in selection["candidates"])
+    assert track["attributes"] == {"source": "test-describer", "attributes": {"subject": "person", "upper": {"garment": None, "colours": ["red"]}}, "ms": 250}
+    assert describer.calls == [(3, (3, 3), "person", "person")]
+    done = events[-1]
+    assert done["attributes_source"] == "test-describer" and done["attributes_seconds"] == 0.25
+    assert done["detections"] >= len(track["boxes"]) and done["dropped_short_tracks"] == 0
+
+
+def test_without_a_describer_tracks_have_no_attributes(moving_box_video, tmp_path):
+    events = list(index_video(moving_box_video, tmp_path / "c", "c", RedBoxDetector(), MeanColourEmbedder(), IndexOptions(sample_fps=4)))
+    [track] = [e for e in events if e["type"] == "track"]
+    assert "attributes" not in track and "attributes_source" not in events[-1]

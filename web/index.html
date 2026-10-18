@@ -28,6 +28,7 @@
     <button role="tab" data-tab="search" aria-selected="true">البحث <span class="en">Search</span></button>
     <button role="tab" data-tab="recordings" aria-selected="false">التسجيلات <span class="en">Recordings</span></button>
     <button role="tab" data-tab="audit" aria-selected="false">سجل التدقيق <span class="en">Audit log</span></button>
+    <button role="tab" data-tab="hood" aria-selected="false">كيف يعمل <span class="en">Under the hood</span></button>
   </nav>
 
   <main>
@@ -40,6 +41,10 @@
           <button type="submit" class="primary">ابحث <span class="en">Search</span></button>
         </div>
         <div id="examples" class="examples" aria-label="أمثلة / examples"></div>
+        <fieldset class="mode" aria-label="طريقة البحث / search mode">
+          <label class="chip"><input type="radio" name="mode" value="hybrid" checked> هجين <span class="en">Hybrid (phase 2)</span></label>
+          <label class="chip"><input type="radio" name="mode" value="baseline"> الخيار أ <span class="en">Option A baseline</span></label>
+        </fieldset>
         <details class="filters" open>
           <summary>تصفية <span class="en">Filters</span></summary>
           <div class="filter-grid">
@@ -56,6 +61,8 @@
         </details>
       </form>
       <p id="search-status" class="status" role="status"></p>
+      <div id="parsed" class="parsed" hidden></div>
+      <p id="check-status" class="status" role="status"></p>
       <div id="results" class="results"></div>
     </section>
 
@@ -99,6 +106,45 @@
       </div>
     </section>
 
+    <section id="tab-hood" class="panel" hidden>
+      <p class="muted">هذه الصفحة تعرض ما يحدث فعلاً في كل مرحلة، من بيانات حقيقية. <span class="en">This page shows what really happens at each stage, from live data.</span></p>
+      <nav class="subtabs" role="tablist">
+        <button role="tab" data-hood="search" aria-selected="true">تتبع البحث <span class="en">Search trace</span></button>
+        <button role="tab" data-hood="recording" aria-selected="false">تتبع التسجيل <span class="en">Recording trace</span></button>
+      </nav>
+      <div id="hood-search" class="hood-panel">
+        <form id="trace-form" class="search-form">
+          <label class="query-label" for="trace-query">اكتب وصفاً وشاهد كل مرحلة في الوضعين <span class="en">Type a description and see every stage in both modes</span></label>
+          <div class="query-row">
+            <input id="trace-query" type="search" dir="auto" maxlength="500" required placeholder="مثال: مرة لابسة جاكيت سكني" autocomplete="off">
+            <button type="submit" class="primary">تتبّع <span class="en">Trace</span></button>
+          </div>
+          <p class="muted small">يستخدم الكاميرات والفترة الزمنية المختارة في تبويب البحث. <span class="en">Uses the cameras and time window chosen on the Search tab. Each traced search is audit-logged like any search.</span></p>
+        </form>
+        <form id="trace-open" class="inline-form">
+          <label>افتح بحثاً سابقاً <span class="en">Open a past search</span>
+            <input id="trace-id" type="text" dir="ltr" maxlength="32" placeholder="search id" autocomplete="off">
+          </label>
+          <button type="submit">فتح <span class="en">Open</span></button>
+        </form>
+        <p id="trace-status" class="status" role="status"></p>
+        <div id="trace-columns" class="trace-columns"></div>
+      </div>
+      <div id="hood-recording" class="hood-panel" hidden>
+        <form id="rectrace-form" class="inline-form">
+          <label>التسجيل <span class="en">Recording</span>
+            <select id="rectrace-recording"></select>
+          </label>
+          <label>لحظات محددة <span class="en">Moments (seconds, optional)</span>
+            <input id="rectrace-at" type="text" dir="ltr" placeholder="12.5, 40" autocomplete="off">
+          </label>
+          <button type="submit" class="primary">اعرض <span class="en">Show</span></button>
+        </form>
+        <p id="rectrace-status" class="status" role="status"></p>
+        <div id="rectrace" class="rectrace"></div>
+      </div>
+    </section>
+
     <section id="tab-audit" class="panel" hidden>
       <div class="audit-head">
         <h2>سجل التدقيق <span class="en">Audit log</span></h2>
@@ -133,6 +179,8 @@
         <div class="card-line"><strong class="camera"></strong><span class="label-badge"></span><span class="score" dir="ltr"></span></div>
         <div class="place"></div>
         <div class="time" dir="ltr"></div>
+        <div class="why" dir="ltr"></div>
+        <div class="check" dir="ltr"></div>
         <div class="verdict">
           <button type="button" class="confirm">✓ تأكيد <span class="en">Confirm</span></button>
           <button type="button" class="reject">✗ رفض <span class="en">Reject</span></button>

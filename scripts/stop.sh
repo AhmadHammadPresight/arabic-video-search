@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 RUN="${AVS_DATA_DIR:-$(pwd)/data}/run"
 
-for name in worker api inference qdrant; do
+for name in worker api inference ollama qdrant; do
   pidfile="$RUN/$name.pid"
   [[ -f "$pidfile" ]] || continue
   pid="$(cat "$pidfile")"

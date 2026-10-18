@@ -1,6 +1,8 @@
 """Search, option A baseline: the query text goes straight to the SigLIP 2 text encoder.
 
-There is no query parsing, translation or attribute filtering yet; those are phase 2.
+There is no query parsing, translation or attribute filtering in this mode; the phase 2 hybrid
+is in `avs.api.hybrid`, and option A stays selectable so the two can be compared on one index.
+With a trace, each stage's output and timing is recorded; the results are the same either way.
 """
 
 from __future__ import annotations
@@ -9,7 +11,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from avs.api.times import from_epoch, parse_local_time, to_epoch
-from avs.api.vectors import Hit, VectorStore
+from avs.api.trace import Trace, vector_preview
+from avs.api.vectors import Hit, VectorStore, build_filter
 
 # Longest clip the results grid plays for one track.
 MAX_CLIP_SECONDS = 30.0
@@ -37,9 +40,40 @@ def run_search(
     embed_text: Callable[[str], list[float]],
     recordings: dict[str, dict],
     query: SearchQuery,
+    trace: Trace | None = None,
+    embed_model: str = "",
 ) -> list[dict]:
-    abs_from, abs_to = query.window()
-    hits = store.search(embed_text(query.text), query.limit, query.cameras, abs_from, abs_to)
+    if trace is None:
+        abs_from, abs_to = query.window()
+        hits = store.search(embed_text(query.text), query.limit, query.cameras, abs_from, abs_to)
+        return _results(hits, recordings)
+
+    abs_from, abs_to = query.window()  # an invalid window fails before any model call, as without a trace
+    if not any(s["key"] == "input" for s in trace.data["stages"]):
+        with trace.stage("input") as stage:
+            stage["output"] = {"text": query.text, "characters": len(query.text)}
+    with trace.stage("embed") as stage:
+        vector = embed_text(query.text)
+        stage["output"] = {"model": embed_model, "padding": "max_length 64 tokens, Latin text lower-cased",
+                           "texts": [{"role": "original text", "text": query.text, **vector_preview(vector)}]}
+    with trace.stage("filter") as stage:
+        query_filter = build_filter(query.cameras, abs_from, abs_to)
+        stage["output"] = {"cameras": query.cameras or "all", "time_from": query.time_from, "time_to": query.time_to,
+                           "labels": "all", "explain": ["camera and time only; option A has no attribute filters"],
+                           "qdrant_filter": query_filter.model_dump(mode="json", exclude_none=True) if query_filter else None}
+    with trace.stage("candidates") as stage:
+        hits = store.search(vector, query.limit, query.cameras, abs_from, abs_to)
+        stage["output"] = {"pool_per_text": query.limit, "tracks": len(hits), "rows": [
+            {"track_key": h.payload["track_key"], "label": h.payload.get("label"), "camera_id": h.payload.get("camera_id"),
+             "crop_url": f"/media/{h.payload['crop_path']}", "similarity": round(h.score, 4)} for h in hits]}
+    results = _results(hits, recordings)
+    with trace.stage("ranking") as stage:
+        stage["output"] = [{"rank": r["rank"], "track_key": r["track_key"], "score": r["score"],
+                            "similarity": r["score"], "crop_url": r["crop_url"]} for r in results]
+    return results
+
+
+def _results(hits: list[Hit], recordings: dict[str, dict]) -> list[dict]:
     results = []
     for hit in hits:
         recording = recordings.get(hit.payload.get("recording_id", ""))
