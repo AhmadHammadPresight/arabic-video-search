@@ -838,7 +838,7 @@ Precedents: Dubai Oyoon has more than 300,000 cameras; Singapore more than 100,0
     )
     rows = [
         ("Scale", "Example", "What it takes", "Realistic for us?"),
-        ("PoC", "A few cameras, uploaded recordings", "This plan, on one Mac", "Yes: this plan"),
+        ("PoC", "A few cameras, uploaded recordings", "This plan, on one computer", "Yes: this plan"),
         ("Site pilot", "One mall, airport terminal or ministry", "On-site GPU server, the site's video system, the owner as data controller, an impact assessment", "Yes, with a partner"),
         ("District", "About 1,000 cameras, many owners", "A box at each site, a central index, data-sharing agreements", "Needs a public-sector sponsor"),
         ("Whole city", "Tens of thousands of cameras, thousands of owners", "A legal mandate, camera standards, a secure network, an operations centre, oversight", "Only as a government programme"),
@@ -942,7 +942,7 @@ def slide_demo(deck: Deck):
         notes="""
 MVP scope (report section 6): upload about 10 short public clips, Arabic search across formal, Jordanian and Gulf phrasing, a results grid with clip, camera, place, time and why it matched, confirm or reject, a simple next-sighting timeline, and an audit log.
 Out of scope: live streams (D7), face recognition (D5), city scale, vehicles and voice.
-Where it runs (D3): the captain's Mac (M4, 48 GB). App services in Docker; models native on macOS, because Docker containers on a Mac cannot use the Apple GPU (https://www.docker.com/blog/docker-model-runner-vllm-metal-macos/).
+Where it runs (D3): one local computer. App services in Docker; the models run directly on the computer, because Docker containers there cannot use its GPU.
 Footage (D2, D7): recordings from public datasets, no live cameras: MEVA (Kitware and IARPA, CC BY 4.0, https://mevadata.org/resources/MEVA-data-license.txt), NVIDIA PhysicalAI-SmartSpaces synthetic store scenes (CC BY 4.0), and a CAVIAR left-bag clip (Creative Commons BY-SA). Clips are trimmed; attribution is shown in the demo.
 The screen on the right is an illustration from the plan's demo mock-up, not a screenshot.
 """,
@@ -987,8 +987,8 @@ The screen on the right is an illustration from the plan's demo mock-up, not a s
 
     box(
         s, 0.6, 6.25, 12.13, 0.65, fill=TEAL_LIGHT, radius=0.08,
-        paras=[P([R("Runs on one Mac (M4, 48 GB): ", bold=True, color=NAVY),
-                  R("the app in Docker, the AI models on the Mac itself. Recorded clips from public datasets, no live cameras, and no cloud AI.")], size=13.5, space_after=0)],
+        paras=[P([R("Runs on one computer: ", bold=True, color=NAVY),
+                  R("the app in Docker, the AI models on the computer itself. Recorded clips from public datasets, no live cameras, and no cloud AI.")], size=13.5, space_after=0)],
         anchor="middle", pad=0.2,
     )
     text(
@@ -1002,95 +1002,58 @@ def slide_measures(deck: Deck):
     s = deck.new(
         kicker="How we will know it works",
         arabic="معايير النجاح",
-        title="Proposed targets for the demo, to be agreed",
+        title="The proposed targets against phase 2: three met, two missed, one not yet measured",
         notes="""
-Success measures as proposed in the plan (report section 6). These are targets set by the plan, not results.
-The test set is about 100 queries on the demo clips (the plan's D4 answer suggests 80-120), written by us across formal Arabic, Jordanian, Gulf and mixed Arabic-English, because no public benchmark covers dialect queries against images (report section 2).
-Main technical risk: dialect robustness of image-text models is untested anywhere (report, "Gaps and unverified items").
+Targets as proposed in the plan (report section 6), still to be agreed. Each is paired with what phase 2 measured, from the project README, section "Evaluation: phase 1 and phase 2 side by side", and its timings of the clean run.
+Test set: 113 queries written by us on the demo clips, 110 of them with a target (three match nobody), across formal Arabic, Jordanian, Gulf, mixed Arabic-English and English. No public benchmark covers dialect queries against images (report section 2).
+Top 10: the hybrid finds a correct track for 109 of 110 (99%), option A for 100 (91%). The fusion settings were tuned on the first 47 scored queries; on the 63 written afterwards the hybrid scores 98% and option A 95%, the fairer estimate.
+Dialect gap, measured on top-10 hit rate: hybrid Jordanian 100%, Gulf 100%, formal 100%; option A Jordanian 80% against formal 97%.
+3 of 5: precision at 5 is 0.51 for the hybrid's first ranking, 0.49 after the double-check, 0.44 for option A. It is capped for targets seen in fewer than 5 tracks.
+Indexing: the 11 starter clips (486 tracks) took 44 minutes, 36.5 of them for the vision model's attributes, against about 7 minutes without them.
+Speed: hybrid first results median 2.1 s, 90th percentile 2.3 s, under 5 s for 112 of 113 searches; the double-check of the top 8 adds a median 17.2 s and fills in after.
+Officer time per story: not measured in phase 2.
 """,
     )
+    status_style = {
+        "met": ("MET", TEAL, TEAL_LIGHT),
+        "missed": ("MISSED", AMBER, AMBER_LIGHT),
+        "none": ("NOT MEASURED", MUTED, "E4E9EF"),
+    }
     tiles = [
-        ("80%", "of about 100 test queries find the right person in the top 10"),
-        ("10 points", "the largest gap allowed between dialect and formal Arabic queries"),
-        ("3 of 5", "top results correct, on average"),
-        ("< 20 min", "to index the demo clips on the Mac"),
-        ("< 5 s", "until results appear; double-checks fill in after"),
-        ("< 2 min", "for an officer to find the target of each story"),
+        ("80%", "of test queries find the right person in the top 10",
+         "99% with phase 2, 91% with option A. 98% on the 63 queries written after tuning.", "met"),
+        ("10 points", "the largest gap allowed between dialect and formal Arabic",
+         "no gap with phase 2: Jordanian, Gulf and formal all 100%. Option A: 17 points.", "met"),
+        ("3 of 5", "top results correct, on average",
+         "about 2.5 of 5 (0.49 after the double-check). Capped where fewer than 5 are correct.", "missed"),
+        ("< 20 min", "to index the demo clips",
+         "44 min for the 11 starter clips, 36.5 of them for clothing details; about 7 without.", "missed"),
+        ("< 5 s", "until results appear; double-checks fill in after",
+         "2.1 s median, under 5 s for 112 of 113 searches. The double-check adds about 17 s.", "met"),
+        ("< 2 min", "for an officer to find the target of each story",
+         "not yet; phase 2 had no timed run with an officer.", "none"),
     ]
-    tw, th, gx, gy = 3.9, 1.72, 0.215, 0.2
-    for i, (big, small) in enumerate(tiles):
+    tw, th, gx, gy = 3.9, 1.88, 0.215, 0.16
+    for i, (big, small, measured, status) in enumerate(tiles):
+        label, accent, light = status_style[status]
         r, c = divmod(i, 3)
         x = 0.6 + c * (tw + gx)
-        y = 1.95 + r * (th + gy)
+        y = 1.9 + r * (th + gy)
         box(s, x, y, tw, th, fill=PANEL, radius=0.06)
-        shape(s, MSO_SHAPE.RECTANGLE, x, y + 0.25, 0.07, th - 0.5, fill=TEAL)
-        text(s, x + 0.3, y + 0.22, tw - 0.5, 0.7, P(big, size=34, bold=True, color=NAVY, space_after=0))
-        text(s, x + 0.3, y + 0.95, tw - 0.5, 0.7, P(small, size=14, color=INK, space_after=0))
+        shape(s, MSO_SHAPE.RECTANGLE, x, y + 0.2, 0.07, th - 0.4, fill=accent)
+        text(s, x + 0.3, y + 0.14, 2.2, 0.5, P(big, size=26, bold=True, color=NAVY, space_after=0))
+        cw = 0.95 if status != "none" else 1.45
+        box(s, x + tw - 0.2 - cw, y + 0.2, cw, 0.3, fill=light, line=accent, line_w=1.0, radius=0.5,
+            paras=[P(label, size=9.5, bold=True, color=accent, align="c", space_after=0)], anchor="middle", pad=0.03)
+        text(s, x + 0.3, y + 0.62, tw - 0.5, 0.48, P(small, size=12, color=MUTED, space_after=0, line_spacing=0.95))
+        text(s, x + 0.3, y + 1.1, tw - 0.5, 0.7,
+             P([R("Measured: ", bold=True, color=accent), R(measured, color=INK)], size=12.5, space_after=0, line_spacing=0.95))
     box(
-        s, 0.6, 5.9, 12.13, 0.9, fill=AMBER_LIGHT, radius=0.08,
+        s, 0.6, 5.95, 12.13, 0.88, fill=AMBER_LIGHT, radius=0.08,
         paras=[P([R("Main risk: ", bold=True, color=AMBER),
-                  R("no public test exists for Jordanian or Gulf Arabic descriptions against video, so we write our own set of about 100 test queries, "
-                    "checked by a native speaker.")], size=14, space_after=0)],
+                  R("no public test exists for Jordanian or Gulf Arabic against video, so the 113 test queries are our own. "
+                    "Settings were tuned on the first 48; the 63 written later are the fairer check (98% top 10, option A 95%).")], size=13, space_after=0)],
         anchor="middle", pad=0.22,
-    )
-
-
-def slide_roadmap(deck: Deck):
-    s = deck.new(
-        kicker="Roadmap",
-        arabic="خارطة الطريق",
-        title="Four phases to a working demo, then a pilot with a partner site",
-        notes="""
-Phases, in order (report section 6); no time estimates are given here:
-Phase 0 set-up: Mac set up, clips downloaded and trimmed, ground truth written.
-Phase 1 baseline with option A (direct multilingual embedding).
-Phase 2 Arabic hybrid (query parser, attributes, double-check).
-Phase 3 demo-ready.
-Team: 1 CV/ML engineer, 1 full-stack engineer, a part-time native Arabic speaker, and a part-time PM/legal for dataset licences, attribution and the impact assessment.
-After the PoC (report section 4): a single-site pilot is realistic with a partner; a district needs a public-sector sponsor; city-wide is a government programme. Production hardware is sized separately (decision D3).
-""",
-    )
-    phases = [
-        ("Phase 0", "Set-up", "Mac ready, about 10 public clips trimmed, right answers written down."),
-        ("Phase 1", "Baseline", "Upload, detect, track, index. First Arabic search and test set."),
-        ("Phase 2", "Arabic hybrid", "Dialect-aware query reading, clothing details, double-check step."),
-        ("Phase 3", "Demo-ready", "Timeline across cameras, audit log, demo script, results write-up."),
-    ]
-    total_w = 12.13
-    cw = (total_w - 3 * 0.2) / 4
-    for i, (ph, name, body) in enumerate(phases):
-        cx = 0.6 + i * (cw + 0.2)
-        box(s, cx, 1.95, cw, 0.62, fill=TEAL if i < 3 else NAVY, radius=0.12,
-            paras=[P(ph, size=13, bold=True, color=WHITE, align="c", space_after=0)], anchor="middle", pad=0.04)
-        if i < 3:
-            chevron(s, cx + cw + 0.03, 2.13, 0.14, 0.26)
-        text(s, cx, 2.75, cw, 0.4, P(name, size=18, bold=True, color=NAVY, space_after=0))
-        text(s, cx, 3.15, cw, 0.95, P(body, size=13.5, space_after=0))
-
-    text(s, 0.6, 4.3, 6, 0.32, P("AFTER THE POC", size=11, color=MUTED, bold=True, space_after=0))
-    steps = [("Site pilot", "One mall, terminal or ministry, with the site as partner", TEAL_LIGHT, TEAL),
-             ("District", "Needs a public-sector sponsor", PANEL, AMBER),
-             ("City programme", "Our search layer plugs in", PANEL, NAVY)]
-    sw = 2.85
-    for i, (name, body, fill, accent) in enumerate(steps):
-        sx = 0.6 + i * (sw + 0.42)
-        box(s, sx, 4.65, sw, 1.05, fill=fill, radius=0.08,
-            paras=[P(name, size=15, bold=True, color=accent, space_after=2), P(body, size=12.5, space_after=0)], anchor="middle", pad=0.18)
-        if i < 2:
-            chevron(s, sx + sw + 0.1, 4.97, 0.22, 0.4)
-
-    box(s, 10.15, 4.3, 2.58, 2.5, fill=NAVY, radius=0.06,
-        paras=[P("TEAM", size=11, bold=True, color="7FD1CC", space_after=6),
-               P("1 computer-vision engineer", size=13, color=WHITE, space_after=6),
-               P("1 full-stack engineer", size=13, color=WHITE, space_after=6),
-               P("Part-time native Arabic speaker", size=13, color=WHITE, space_after=6),
-               P("Part-time PM and legal", size=13, color=WHITE, space_after=0)],
-        anchor="middle", pad=0.2)
-    box(
-        s, 0.6, 5.95, 9.31, 0.85, fill=WHITE, line=LINE, radius=0.08,
-        paras=[P([R("Already settled: ", bold=True, color=NAVY),
-                  R("appearance search only, local models only, recorded footage only, all three stories in the demo, and the demo on one Mac.")], size=13.5, space_after=0)],
-        anchor="middle", pad=0.2,
     )
 
 
@@ -1124,7 +1087,6 @@ SLIDES = [
     slide_safeguards,
     slide_demo,
     slide_measures,
-    slide_roadmap,
 ]
 
 
