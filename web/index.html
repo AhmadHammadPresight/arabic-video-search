@@ -3,59 +3,61 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>البحث في تسجيلات المراقبة · CCTV Search</title>
+  <title data-i18n="app.title"></title>
   <link rel="stylesheet" href="/styles.css">
   <script type="module" src="/app.js"></script>
 </head>
+<!-- Every visible string comes from web/locales/<language>.json through the data-i18n attributes.
+     Elements marked data-tech only exist in the technical view at /tech. -->
 <body>
   <header class="topbar">
     <div class="brand">
-      <h1>البحث الذكي في تسجيلات المراقبة</h1>
-      <p class="en" dir="ltr">Arabic CCTV search · proof of concept</p>
+      <h1 data-i18n="app.heading"></h1>
+      <span class="view-badge" data-tech data-i18n="app.techView"></span>
     </div>
     <div class="session">
-      <label>المستخدم <span class="en">Officer</span>
-        <input id="actor" type="text" maxlength="80" placeholder="الاسم / name" autocomplete="off">
+      <label><span data-i18n="session.officer"></span>
+        <input id="actor" type="text" maxlength="80" data-i18n-placeholder="session.officerPlaceholder" autocomplete="off">
       </label>
-      <label>رقم القضية <span class="en">Case no.</span>
-        <input id="case-id" type="text" maxlength="80" placeholder="اختياري / optional" autocomplete="off">
+      <label><span data-i18n="session.case"></span>
+        <input id="case-id" type="text" maxlength="80" data-i18n-placeholder="session.casePlaceholder" autocomplete="off">
       </label>
-      <span id="health" class="health" title="">…</span>
+      <button id="lang-switch" type="button" class="lang-switch" data-i18n="lang.switch" data-i18n-title="lang.switchTitle"></button>
     </div>
   </header>
 
   <nav class="tabs" role="tablist">
-    <button role="tab" data-tab="search" aria-selected="true">البحث <span class="en">Search</span></button>
-    <button role="tab" data-tab="recordings" aria-selected="false">التسجيلات <span class="en">Recordings</span></button>
-    <button role="tab" data-tab="audit" aria-selected="false">سجل التدقيق <span class="en">Audit log</span></button>
-    <button role="tab" data-tab="hood" aria-selected="false">كيف يعمل <span class="en">Under the hood</span></button>
+    <button role="tab" data-tab="search" aria-selected="true" data-i18n="tab.search"></button>
+    <button role="tab" data-tab="recordings" aria-selected="false" data-i18n="tab.recordings"></button>
+    <button role="tab" data-tab="audit" aria-selected="false" data-i18n="tab.audit"></button>
+    <button role="tab" data-tab="hood" aria-selected="false" data-tech data-i18n="tab.hood"></button>
   </nav>
 
   <main>
     <section id="tab-search" class="panel">
       <form id="search-form" class="search-form">
-        <label class="query-label" for="query">صف الشخص أو الغرض <span class="en">Describe the person or object</span></label>
+        <label class="query-label" for="query" data-i18n="search.label"></label>
         <div class="query-row">
           <input id="query" name="query" type="search" dir="auto" maxlength="500" required
-                 placeholder="مثال: رجل يرتدي قميص أحمر" autocomplete="off">
-          <button type="submit" class="primary">ابحث <span class="en">Search</span></button>
+                 data-i18n-placeholder="search.placeholder" autocomplete="off">
+          <button type="submit" class="primary" data-i18n="search.submit"></button>
         </div>
-        <div id="examples" class="examples" aria-label="أمثلة / examples"></div>
-        <fieldset class="mode" aria-label="طريقة البحث / search mode">
-          <label class="chip"><input type="radio" name="mode" value="hybrid" checked> هجين <span class="en">Hybrid (phase 2)</span></label>
-          <label class="chip"><input type="radio" name="mode" value="baseline"> الخيار أ <span class="en">Option A baseline</span></label>
+        <div id="examples" class="examples" data-i18n-aria-label="search.examples"></div>
+        <fieldset class="mode" data-tech data-i18n-aria-label="mode.label">
+          <label class="chip"><input type="radio" name="mode" value="hybrid" checked><span data-i18n="mode.hybrid"></span></label>
+          <label class="chip"><input type="radio" name="mode" value="baseline"><span data-i18n="mode.baseline"></span></label>
         </fieldset>
         <details class="filters" open>
-          <summary>تصفية <span class="en">Filters</span></summary>
+          <summary data-i18n="filters.title"></summary>
           <div class="filter-grid">
             <fieldset>
-              <legend>الكاميرات <span class="en">Cameras</span></legend>
-              <div id="camera-filter" class="camera-filter"><span class="muted">لا توجد كاميرات بعد · no cameras yet</span></div>
+              <legend data-i18n="filters.cameras"></legend>
+              <div id="camera-filter" class="camera-filter"><span class="muted" data-i18n="filters.noCameras"></span></div>
             </fieldset>
             <fieldset>
-              <legend>الفترة الزمنية <span class="en">Time window</span></legend>
-              <label>من <span class="en">From</span> <input id="time-from" type="datetime-local" step="1"></label>
-              <label>إلى <span class="en">To</span> <input id="time-to" type="datetime-local" step="1"></label>
+              <legend data-i18n="filters.time"></legend>
+              <label><span data-i18n="filters.from"></span> <input id="time-from" type="datetime-local" step="1"></label>
+              <label><span data-i18n="filters.to"></span> <input id="time-to" type="datetime-local" step="1"></label>
             </fieldset>
           </div>
         </details>
@@ -68,37 +70,37 @@
 
     <section id="tab-recordings" class="panel" hidden>
       <form id="upload-form" class="upload-form">
-        <h2>رفع تسجيل <span class="en">Upload a recording</span></h2>
+        <h2 data-i18n="upload.title"></h2>
         <div class="upload-grid">
-          <label>ملف الفيديو <span class="en">Video file</span>
+          <label><span data-i18n="upload.file"></span>
             <input name="file" type="file" accept="video/*,.avi,.mpg,.mpeg,.mkv,.ts" required>
           </label>
-          <label>رقم الكاميرا <span class="en">Camera ID</span>
+          <label><span data-i18n="upload.camera"></span>
             <input name="camera_id" type="text" dir="ltr" required pattern="[A-Za-z0-9_.\-]{1,40}" placeholder="G421">
           </label>
-          <label>المكان <span class="en">Place</span>
-            <input name="place" type="text" dir="auto" required maxlength="200" placeholder="مثال: صالة الانتظار / waiting room">
+          <label><span data-i18n="upload.place"></span>
+            <input name="place" type="text" dir="auto" required maxlength="200" data-i18n-placeholder="upload.placePlaceholder">
           </label>
-          <label>وقت بداية التسجيل <span class="en">Recording start (camera local time)</span>
+          <label><span data-i18n="upload.start"></span>
             <input name="start_time" type="datetime-local" step="1" required>
           </label>
         </div>
         <div class="upload-actions">
-          <button type="submit" class="primary">رفع وفهرسة <span class="en">Upload and index</span></button>
+          <button type="submit" class="primary" data-i18n="upload.submit"></button>
           <progress id="upload-progress" max="1" value="0" hidden></progress>
           <span id="upload-status" class="status" role="status"></span>
         </div>
       </form>
-      <h2>التسجيلات <span class="en">Recordings</span></h2>
+      <h2 data-i18n="recordings.title"></h2>
       <div class="table-wrap">
         <table class="recordings">
           <thead><tr>
-            <th>الكاميرا <span class="en">Camera</span></th>
-            <th>المكان <span class="en">Place</span></th>
-            <th>البداية <span class="en">Start</span></th>
-            <th>المدة <span class="en">Length</span></th>
-            <th>الحالة <span class="en">Status</span></th>
-            <th>المسارات <span class="en">Tracks</span></th>
+            <th data-i18n="recordings.camera"></th>
+            <th data-i18n="recordings.place"></th>
+            <th data-i18n="recordings.start"></th>
+            <th data-i18n="recordings.length"></th>
+            <th data-i18n="recordings.status"></th>
+            <th data-i18n="recordings.tracks"></th>
             <th></th>
           </tr></thead>
           <tbody id="recordings-body"></tbody>
@@ -106,39 +108,40 @@
       </div>
     </section>
 
-    <section id="tab-hood" class="panel" hidden>
-      <p class="muted">هذه الصفحة تعرض ما يحدث فعلاً في كل مرحلة، من بيانات حقيقية. <span class="en">This page shows what really happens at each stage, from live data.</span></p>
+    <section id="tab-hood" class="panel" data-tech hidden>
+      <p class="muted" data-i18n="hood.intro"></p>
+      <p id="health" class="health" role="status"></p>
       <nav class="subtabs" role="tablist">
-        <button role="tab" data-hood="search" aria-selected="true">تتبع البحث <span class="en">Search trace</span></button>
-        <button role="tab" data-hood="recording" aria-selected="false">تتبع التسجيل <span class="en">Recording trace</span></button>
+        <button role="tab" data-hood="search" aria-selected="true" data-i18n="hood.searchTab"></button>
+        <button role="tab" data-hood="recording" aria-selected="false" data-i18n="hood.recordingTab"></button>
       </nav>
       <div id="hood-search" class="hood-panel">
         <form id="trace-form" class="search-form">
-          <label class="query-label" for="trace-query">اكتب وصفاً وشاهد كل مرحلة في الوضعين <span class="en">Type a description and see every stage in both modes</span></label>
+          <label class="query-label" for="trace-query" data-i18n="trace.label"></label>
           <div class="query-row">
-            <input id="trace-query" type="search" dir="auto" maxlength="500" required placeholder="مثال: مرة لابسة جاكيت سكني" autocomplete="off">
-            <button type="submit" class="primary">تتبّع <span class="en">Trace</span></button>
+            <input id="trace-query" type="search" dir="auto" maxlength="500" required data-i18n-placeholder="trace.placeholder" autocomplete="off">
+            <button type="submit" class="primary" data-i18n="trace.submit"></button>
           </div>
-          <p class="muted small">يستخدم الكاميرات والفترة الزمنية المختارة في تبويب البحث. <span class="en">Uses the cameras and time window chosen on the Search tab. Each traced search is audit-logged like any search.</span></p>
+          <p class="muted small" data-i18n="trace.note"></p>
         </form>
         <form id="trace-open" class="inline-form">
-          <label>افتح بحثاً سابقاً <span class="en">Open a past search</span>
-            <input id="trace-id" type="text" dir="ltr" maxlength="32" placeholder="search id" autocomplete="off">
+          <label><span data-i18n="trace.openLabel"></span>
+            <input id="trace-id" type="text" dir="ltr" maxlength="32" data-i18n-placeholder="trace.openPlaceholder" autocomplete="off">
           </label>
-          <button type="submit">فتح <span class="en">Open</span></button>
+          <button type="submit" data-i18n="trace.open"></button>
         </form>
         <p id="trace-status" class="status" role="status"></p>
         <div id="trace-columns" class="trace-columns"></div>
       </div>
       <div id="hood-recording" class="hood-panel" hidden>
         <form id="rectrace-form" class="inline-form">
-          <label>التسجيل <span class="en">Recording</span>
+          <label><span data-i18n="rectrace.recording"></span>
             <select id="rectrace-recording"></select>
           </label>
-          <label>لحظات محددة <span class="en">Moments (seconds, optional)</span>
+          <label><span data-i18n="rectrace.moments"></span>
             <input id="rectrace-at" type="text" dir="ltr" placeholder="12.5, 40" autocomplete="off">
           </label>
-          <button type="submit" class="primary">اعرض <span class="en">Show</span></button>
+          <button type="submit" class="primary" data-i18n="rectrace.submit"></button>
         </form>
         <p id="rectrace-status" class="status" role="status"></p>
         <div id="rectrace" class="rectrace"></div>
@@ -147,18 +150,18 @@
 
     <section id="tab-audit" class="panel" hidden>
       <div class="audit-head">
-        <h2>سجل التدقيق <span class="en">Audit log</span></h2>
-        <button id="audit-refresh" type="button">تحديث <span class="en">Refresh</span></button>
+        <h2 data-i18n="audit.title"></h2>
+        <button id="audit-refresh" type="button" data-i18n="audit.refresh"></button>
       </div>
-      <p class="muted">كل بحث وتأكيد ورفض يُسجَّل هنا ولا يمكن تعديله أو حذفه. <span class="en">Every search, confirm and reject is recorded here and cannot be edited or deleted.</span></p>
+      <p class="muted" data-i18n="audit.note"></p>
       <div class="table-wrap">
         <table class="audit">
           <thead><tr>
             <th>#</th>
-            <th>الوقت <span class="en">Time (UTC)</span></th>
-            <th>المستخدم <span class="en">Officer</span></th>
-            <th>الإجراء <span class="en">Action</span></th>
-            <th>التفاصيل <span class="en">Details</span></th>
+            <th data-i18n="audit.time"></th>
+            <th data-i18n="audit.officer"></th>
+            <th data-i18n="audit.action"></th>
+            <th data-i18n="audit.details"></th>
           </tr></thead>
           <tbody id="audit-body"></tbody>
         </table>
@@ -169,21 +172,21 @@
   <template id="result-card">
     <article class="card">
       <div class="media">
-        <img class="crop" alt="أفضل لقطة · best crop" loading="lazy">
+        <img class="crop" data-i18n-alt="card.cropAlt" loading="lazy">
         <div class="player">
           <video muted playsinline preload="metadata"></video>
           <span class="rank"></span>
         </div>
       </div>
       <div class="card-body">
-        <div class="card-line"><strong class="camera"></strong><span class="label-badge"></span><span class="score" dir="ltr"></span></div>
+        <div class="card-line"><strong class="camera"></strong><span class="label-badge"></span><span class="score"></span></div>
         <div class="place"></div>
         <div class="time" dir="ltr"></div>
-        <div class="why" dir="ltr"></div>
-        <div class="check" dir="ltr"></div>
+        <div class="why"></div>
+        <div class="check"></div>
         <div class="verdict">
-          <button type="button" class="confirm">✓ تأكيد <span class="en">Confirm</span></button>
-          <button type="button" class="reject">✗ رفض <span class="en">Reject</span></button>
+          <button type="button" class="confirm" data-i18n="card.confirm"></button>
+          <button type="button" class="reject" data-i18n="card.reject"></button>
         </div>
       </div>
     </article>

@@ -79,19 +79,25 @@ Both copies share the Hugging Face cache and Ollama's model store, so models are
 
 ## Using it
 
+The page has two views.
+The business view at `/` (http://127.0.0.1:8470) has Search, Recordings and the Audit log, and always searches in the hybrid mode.
+The technical view at `/tech` adds the search mode switch, the Under the hood tab and the trace links; it is a plain address, with no login.
+The page shows one language at a time: Arabic, right to left, by default, and English, left to right, from the language button at the top.
+The choice is remembered in the browser, and every string is in `web/locales/ar.json` and `web/locales/en.json`.
+
 - **Search** (البحث): type a description in Arabic (formal or dialect), English or a mix, optionally tick cameras and set a time window.
-  The hybrid mode (هجين) is the default; option A (الخيار أ) is one click away.
+  The hybrid mode (هجين) is the default; in the technical view option A (الخيار أ) is one click away.
   - In the hybrid mode a panel shows what the query model understood: the fields, such as woman and grey jacket, and the English rewrite.
   - Each result shows the best crop, plays the clip at its moment, lists camera, place, time span and score, and shows why it matched, field by field: ✓ match, ≈ close (beige for brown), ? not known for this track, – not seen, ✗ different.
   - A few seconds later the vision model's double-check fills in on the top results: confirmed results move up, rejected ones move down with the model's reason, and unsure ones stay put.
     Starting a new search stops the previous search's check.
   - Confirm (تأكيد) or reject (رفض) each result; the officer always decides.
 - **Recordings** (التسجيلات): upload a video with its camera ID, place and recording start time (the camera's local time).
-  It is queued and indexed in the background, with a progress bar; re-index, delete and "how it was indexed" are on each row.
+  It is queued and indexed in the background, with a progress bar; re-index and delete are on each row, and "how it was indexed" too in the technical view.
 - **Audit log** (سجل التدقيق): every upload, search, confirm, reject, re-index and delete, with the officer's name and an optional case number, plus a `check` entry whenever the vision model re-orders a search.
-  Each search links to its trace.
+  In the technical view each search links to its trace.
   The log cannot be edited or deleted.
-- **Under the hood** (كيف يعمل): see what happens inside, from live data.
+- **Under the hood** (كيف يعمل, technical view only): see what happens inside, from live data.
   - Search trace: type a description and it runs in both modes side by side, showing every stage in order with its real output and time: the raw text, the query model's fields and English rewrite, the SigLIP 2 embeddings, the filters applied, the candidate tracks from Qdrant with their similarities, the attribute match per field, the fused scores, the double-check answer for each result and the final order.
     Any past search can be reopened by its id or from the audit log.
   - Recording trace: pick an indexed recording to see the indexing settings and statistics, a few sampled frames with the detector's boxes drawn on them (run live) beside the indexed tracks, every track with its chosen crops and why each candidate crop was or was not picked, and the attributes the vision model attached, with its raw reply.

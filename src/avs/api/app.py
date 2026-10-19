@@ -1,7 +1,8 @@
 """Web API and UI server.
 
-Run it with `uvicorn avs.api.app:create_app --factory`. It serves the Arabic-first web UI,
-the JSON API under `/api`, and the playback copies, crops and trace frames under `/media`.
+Run it with `uvicorn avs.api.app:create_app --factory`. It serves the Arabic-first web UI
+(the business view at `/`, the technical view at `/tech`), the JSON API under `/api`, and the
+playback copies, crops and trace frames under `/media`.
 Uploads are stored and queued here; the worker process does the indexing.
 Searches run in hybrid mode (phase 2) unless option A is asked for; both store a trace.
 """
@@ -19,6 +20,7 @@ from pathlib import Path
 from typing import Literal
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from qdrant_client import QdrantClient
@@ -390,6 +392,12 @@ def create_app(services: Services | None = None) -> FastAPI:
             return db.list_audit(c, max(1, min(limit, 1000)))
 
     # Only the derived media is served; uploads, models and the database are not reachable over HTTP.
+    # The technical view is the same page; at this path it adds the mode switch and "Under the hood".
+    @app.get("/tech", include_in_schema=False)
+    @app.get("/tech/", include_in_schema=False)
+    def technical_view() -> FileResponse:
+        return FileResponse(WEB_DIR / "index.html", headers={"Cache-Control": "no-cache"})
+
     app.mount("/media/playback", StaticFiles(directory=settings.playback_dir), name="playback")
     app.mount("/media/crops", StaticFiles(directory=settings.crops_dir), name="crops")
     app.mount("/media/trace", StaticFiles(directory=trace_dir), name="trace")

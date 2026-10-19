@@ -189,6 +189,21 @@ def test_only_derived_media_is_served(env):
     assert client.get("/").status_code == 200 and 'dir="rtl"' in client.get("/").text
 
 
+def test_the_technical_view_serves_the_same_page(env):
+    client = env[0]
+    page = client.get("/")
+    assert page.status_code == 200
+    for path in ("/tech", "/tech/"):
+        tech = client.get(path)
+        assert tech.status_code == 200, path
+        assert tech.text == page.text
+        assert tech.headers["content-type"].startswith("text/html")
+        assert tech.headers["cache-control"] == "no-cache"
+    # The page's script, its translation module and both tables load from either view.
+    for path in ("/app.js", "/i18n.js", "/locales/ar.json", "/locales/en.json"):
+        assert client.get(path).status_code == 200, path
+
+
 def test_failed_indexing_marks_the_recording(env):
     client, worker, settings, video = env
 

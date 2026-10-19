@@ -1,8 +1,17 @@
 // Arabic-first UI for the CCTV search PoC. Plain ES module, no build step, no external requests.
+// Every string the page shows comes from web/locales/<language>.json through t() (see i18n.js).
+// The page has two views: the business view at / (search, recordings, audit log; always the
+// hybrid search) and the technical view at /tech, which adds the search mode switch, the
+// "Under the hood" tab and the links into it.
+
+import { currentLanguage, initLanguage, maybe, switchLanguage, t, translatePage } from "/i18n.js";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 
-// Example queries that have matches in the public starter footage.
+const TECH = location.pathname.replace(/\/+$/, "") === "/tech";
+
+// Example queries that have matches in the public starter footage. They are sample search
+// inputs, not page text, so they stay the same in every language.
 const EXAMPLES = [
   "امرأة ترتدي سترة حمراء",
   "شخص يرتدي سترة حمراء بقلنسوة",
@@ -13,64 +22,17 @@ const EXAMPLES = [
   "a person in a red hoodie",
 ];
 
-const LABELS = {
-  person: "شخص · person",
-  backpack: "حقيبة ظهر · backpack",
-  handbag: "حقيبة يد · handbag",
-  suitcase: "حقيبة سفر · suitcase",
-};
-
-const STATUS = {
-  queued: "في الانتظار · queued",
-  indexing: "قيد الفهرسة · indexing",
-  indexed: "جاهز · indexed",
-  failed: "فشل · failed",
-};
-
-const ACTIONS = {
-  search: "بحث · search",
-  confirm: "تأكيد · confirm",
-  reject: "رفض · reject",
-  upload: "رفع · upload",
-  reindex: "إعادة فهرسة · reindex",
-  delete: "حذف · delete",
-  check: "تحقق بصري · vision check",
-};
-
 // "Why it matched": one mark per result of an attribute comparison.
 const MARKS = { match: "✓", near: "≈", unknown: "?", missing: "–", mismatch: "✗" };
-const FIELD_NAMES = {
-  gender: "الجنس", age_band: "العمر", upper_colour: "اللباس العلوي", upper_garment: "نوع اللباس العلوي",
-  lower_colour: "اللباس السفلي", lower_garment: "نوع اللباس السفلي", hair_colour: "لون الشعر",
-  hair_length: "طول الشعر", headwear: "غطاء الرأس", carried: "يحمل",
-};
-const VERDICTS = {
-  confirmed: "✓ أكّد النموذج البصري · vision check: confirmed",
-  rejected: "✗ رفض النموذج البصري · vision check: rejected",
-  unsure: "? غير متأكد · vision check: unsure",
-  pending: "… قيد التحقق البصري · vision check pending",
-};
 
 const STAGE_ORDER = ["input", "parse", "embed", "filter", "candidates", "attributes", "fusion", "ranking", "check", "final"];
-const STAGE_TITLES = {
-  input: ["النص المدخل", "Raw text"],
-  parse: ["فهم الاستعلام بالنموذج اللغوي", "Query model: fields and English rewrite"],
-  embed: ["تمثيل النص بـ SigLIP 2", "SigLIP 2 text embedding"],
-  filter: ["التصفية قبل الترتيب", "Filters applied before ranking"],
-  candidates: ["المرشحون من Qdrant", "Candidate tracks from Qdrant"],
-  attributes: ["مطابقة السمات", "Attribute match per field"],
-  fusion: ["دمج الدرجات", "Score fusion"],
-  ranking: ["الترتيب الأول", "First ranking (shown at once)"],
-  check: ["التحقق البصري", "Vision-model double-check"],
-  final: ["الترتيب النهائي", "Final ranking"],
-};
 
 // Per-viewer conveniences only; the audit log on the server is the record.
-function remember(key, value) {
-  try { localStorage.setItem(key, value); } catch { /* storage may be blocked */ }
+function remember(key, value, storage = "localStorage") {
+  try { window[storage].setItem(key, value); } catch { /* storage may be blocked */ }
 }
-function recall(key) {
-  try { return localStorage.getItem(key) || ""; } catch { return ""; }
+function recall(key, storage = "localStorage") {
+  try { return window[storage].getItem(key) || ""; } catch { return ""; }
 }
 
 function actor() {
@@ -93,8 +55,9 @@ function el(tag, props = {}, ...children) {
   return node;
 }
 
-function bi(ar, en) {
-  return [ar, " ", el("span", { class: "en", text: en })];
+// A server value such as "English rewrite" as a table key suffix: "english-rewrite".
+function slug(value) {
+  return String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
 async function api(path, options = {}) {
@@ -125,6 +88,81 @@ function num(value, digits = 3) {
   return value == null ? "–" : Number(value).toFixed(digits);
 }
 
+function ms(value) {
+  return value == null ? null : t("unit.ms", { ms: value });
+}
+
+function list(items) {
+  return items.join(t("list.separator"));
+}
+
+// Wrap a value from the data (often English) so it keeps its own direction inside a sentence.
+function isolate(value) {
+  return `\u2068${value}\u2069`;
+}
+
+function errorText(err) {
+  return t("error.generic", { message: isolate(err.message ?? err) });
+}
+
+// Words for the fixed description vocabulary (avs/fields.py) in the current language.
+
+function word(group, value) {
+  return value == null ? "" : maybe(`${group}.${value}`, String(value));
+}
+
+// "red or white jacket" in the page language; in Arabic the colours agree with a feminine noun.
+function phrase(colours, noun) {
+  const gender = noun ? maybe(`noun.${noun}@gender`, "m") : "m";
+  const shades = (colours || []).map((c) => maybe(`colour.${c}@${gender}`, c)).join(t("phrase.or"));
+  if (!noun) return shades;
+  return shades ? t("phrase.coloured", { thing: word("noun", noun), colours: shades }) : word("noun", noun);
+}
+
+function hairPhrase(colour, length) {
+  return t("phrase.hair", { colour: word("hairColour", colour), length: word("hairLength", length) }).replace(/\s+/g, " ").trim();
+}
+
+// The query's value for one compared field. Trace rows carry it; result cards only name the
+// field, so it comes from the parsed query (nth picks the carried object).
+function queryValue(match, fields, nth) {
+  if (match.query !== undefined) return match.query;
+  if (!fields) return undefined;
+  switch (match.field) {
+    case "gender": return fields.gender;
+    case "age_band": return fields.age_band;
+    case "upper_colour": return fields.upper?.colours;
+    case "lower_colour": return fields.lower?.colours;
+    case "upper_garment": return fields.upper?.garment;
+    case "lower_garment": return fields.lower?.garment;
+    case "hair_colour": return fields.hair?.colour;
+    case "hair_length": return fields.hair?.length;
+    case "headwear": return fields.headwear;
+    case "carried": return fields.carried?.[nth];
+    default: return undefined;
+  }
+}
+
+// The words for one compared field in the page language, or the server's English label when
+// the query value is not at hand.
+function whyLabel(match, fields, nth = 0) {
+  const q = queryValue(match, fields, nth);
+  if (q == null) return match.label;
+  switch (match.field) {
+    case "gender": return word("gender", q);
+    case "age_band": return word("age", q);
+    case "upper_colour": return phrase(q, fields?.upper?.garment || "top");
+    case "lower_colour": return phrase(q, fields?.lower?.garment || "trousers");
+    case "upper_garment":
+    case "lower_garment": return word("noun", q);
+    case "hair_colour": return hairPhrase(q, null);
+    case "hair_length": return hairPhrase(null, q);
+    case "headwear": return phrase(q.colours, q.type);
+    case "carried": return phrase(q.colours, q.object);
+    default: return match.label;
+  }
+}
+
 // Tabs
 
 function showTab(name) {
@@ -137,7 +175,10 @@ function showTab(name) {
   if (name === "recordings") loadRecordings();
   if (name === "audit") loadAudit();
   if (name === "search") loadCameras();
-  if (name === "hood") loadRecordingChoices();
+  if (name === "hood") {
+    loadRecordingChoices();
+    checkHealth();
+  }
 }
 
 function showHood(name) {
@@ -168,7 +209,7 @@ async function loadCameras() {
     input.value = cam.camera_id;
     input.checked = checked.has(cam.camera_id);
     const text = document.createElement("span");
-    text.textContent = `${cam.camera_id} · ${cam.places.join("، ")}`;
+    text.textContent = t("filters.camera", { camera: cam.camera_id, places: list(cam.places) });
     label.append(input, text);
     return label;
   }));
@@ -183,6 +224,7 @@ function searchFilters() {
   };
 }
 
+// The business view has no mode switch, so it always searches in the hybrid mode.
 function searchMode() {
   return document.querySelector("input[name=mode]:checked")?.value || "hybrid";
 }
@@ -204,7 +246,7 @@ async function runSearch(event) {
   cancelCheck(searchCheck);
   searchCheck = null;
   const status = $("#search-status");
-  status.textContent = "جارٍ البحث… · searching…";
+  status.textContent = t("search.searching");
   $("#results").replaceChildren();
   $("#parsed").hidden = true;
   $("#check-status").textContent = "";
@@ -218,66 +260,73 @@ async function runSearch(event) {
     });
     if (token !== searchToken) return;
     const fallback = searchMode() === "hybrid" && data.mode !== "hybrid"
-      ? " · نموذج الاستعلام غير متاح، عُرضت نتائج الخيار أ · query model unavailable, showing option A" : "";
-    status.textContent = data.results.length
-      ? `${data.results.length} نتيجة · ${data.results.length} results · ${data.took_ms} ms${fallback}`
-      : `لا توجد نتائج · no results${fallback}`;
+      ? t(TECH ? "search.fallbackTech" : "search.fallback") : "";
+    const found = data.results.length
+      ? t("search.results", { n: data.results.length, ms: data.took_ms })
+      : t("search.noResults");
+    status.textContent = [found, fallback].filter(Boolean).join(t("list.join"));
     if (data.parsed) renderParsed(data);
     const checking = data.check && data.check.status !== "skipped" ? data.check.total : 0;
-    const cards = new Map(data.results.map((r) => [r.track_key, resultCard(r, data.search_id, r.rank <= checking)]));
+    const cards = new Map(data.results.map((r) => [r.track_key, resultCard(r, data.search_id, r.rank <= checking, data.parsed)]));
     $("#results").replaceChildren(...cards.values());
     if (data.check && data.check.status !== "skipped") {
       searchCheck = data.search_id;
       followCheck(data.search_id, cards, token);
     }
   } catch (err) {
-    status.textContent = `خطأ · error: ${err.message}`;
+    status.textContent = errorText(err);
   }
 }
 
+// The fields the query model read from the description, one chip each.
 function fieldChips(fields) {
   const chips = [];
-  const colours = (part, noun) => `${part.colours.join(" / ")} ${part.garment || noun}`.trim();
-  if (fields.subject === "bag") chips.push(["حقيبة", "bag"]);
-  if (fields.gender) chips.push(fields.gender === "female" ? ["امرأة", "woman"] : ["رجل", "man"]);
-  if (fields.age_band && fields.age_band !== "adult") chips.push(fields.age_band === "child" ? ["طفل", "child"] : ["كبير السن", "elderly"]);
-  if (fields.upper.colours.length || fields.upper.garment) chips.push([FIELD_NAMES.upper_colour, colours(fields.upper, "top")]);
-  if (fields.lower.colours.length || fields.lower.garment) chips.push([FIELD_NAMES.lower_colour, colours(fields.lower, "trousers")]);
-  if (fields.hair.colour || fields.hair.length) chips.push(["الشعر", [fields.hair.length, fields.hair.colour, "hair"].filter(Boolean).join(" ")]);
-  if (fields.headwear.type) chips.push([FIELD_NAMES.headwear, `${fields.headwear.colours.join(" / ")} ${fields.headwear.type}`.trim()]);
-  for (const item of fields.carried) chips.push([fields.subject === "bag" ? "الحقيبة" : FIELD_NAMES.carried, `${item.colours.join(" / ")} ${item.object}`.trim()]);
-  for (const other of fields.other) chips.push(["تفاصيل", other]);
-  return chips.map(([ar, en]) => el("span", { class: "chip field-chip" }, ...bi(ar, en)));
+  if (fields.subject === "bag") chips.push(t("parsed.bag"));
+  if (fields.gender) chips.push(word("gender", fields.gender));
+  if (fields.age_band && fields.age_band !== "adult") chips.push(word("age", fields.age_band));
+  if (fields.upper.colours.length || fields.upper.garment) chips.push(phrase(fields.upper.colours, fields.upper.garment || "top"));
+  if (fields.lower.colours.length || fields.lower.garment) chips.push(phrase(fields.lower.colours, fields.lower.garment || "trousers"));
+  if (fields.hair.colour || fields.hair.length) chips.push(hairPhrase(fields.hair.colour, fields.hair.length));
+  if (fields.headwear.type) chips.push(phrase(fields.headwear.colours, fields.headwear.type));
+  for (const item of fields.carried) {
+    const thing = phrase(item.colours, item.object);
+    chips.push(fields.subject === "bag" ? thing : t("parsed.carries", { thing }));
+  }
+  for (const other of fields.other) chips.push(t("parsed.other", { text: isolate(other) }));
+  return chips.map((text) => el("span", { class: "chip field-chip", text }));
 }
 
 function renderParsed(data) {
   const box = $("#parsed");
   box.replaceChildren(
-    el("div", { class: "parsed-head" }, ...bi("فهمنا من الوصف", "What the query model understood")),
+    el("div", { class: "parsed-head", text: t("parsed.title") }),
     el("div", { class: "parsed-chips" }, ...fieldChips(data.parsed)),
-    el("div", { class: "parsed-english", dir: "ltr" }, "English rewrite: ", el("q", { text: data.parsed.english })),
-    el("button", { type: "button", class: "link", onclick: () => openTrace(data.search_id) },
-      ...bi("كيف وُجدت هذه النتائج؟", "How were these found? (under the hood)")),
+    el("div", { class: "parsed-english" }, t("parsed.english"), " ", el("span", { dir: "ltr", lang: "en", text: `“${data.parsed.english}”` })),
   );
+  if (TECH) box.append(el("button", { type: "button", class: "link", onclick: () => openTrace(data.search_id), text: t("parsed.how") }));
   box.hidden = false;
 }
 
-function whyChips(why) {
+function whyChips(why, fields) {
+  let carried = 0;
   return (why || []).map((w) => el("span", {
     class: `why-chip why-${w.result}`,
-    title: `${FIELD_NAMES[w.field] || w.field} · ${w.result}`,
-    text: `${MARKS[w.result]} ${w.label}`,
+    title: t("why.title", { field: word("field", w.field), result: t(`why.${w.result}`) }),
+    text: `${MARKS[w.result]} ${whyLabel(w, fields, w.field === "carried" ? carried++ : 0)}`,
   }));
+}
+
+function answerChip(detail, answer) {
+  return el("span", { class: `why-chip answer-${answer}`, text: t("check.answer", { detail: isolate(detail), answer: word("answer", answer) }) });
 }
 
 function setCheck(card, verdict) {
   const box = $(".check", card);
   if (!verdict) return;
-  const label = VERDICTS[verdict.verdict] || verdict.verdict;
-  const answers = Object.entries(verdict.answers || {}).map(([detail, answer]) =>
-    el("span", { class: `why-chip answer-${answer}`, text: `${detail}: ${answer}` }));
+  const label = word("verdict", verdict.verdict);
+  const answers = Object.entries(verdict.answers || {}).map(([detail, answer]) => answerChip(detail, answer));
   box.replaceChildren(el("div", { class: `verdict-badge verdict-${verdict.verdict}`, text: label }),
-    el("div", { class: "answers" }, ...answers), verdict.note ? el("div", { class: "muted small", text: verdict.note }) : null);
+    el("div", { class: "answers" }, ...answers), ...(verdict.note ? [el("div", { class: "muted small", dir: "auto", text: verdict.note })] : []));
   card.dataset.check = verdict.verdict;
 }
 
@@ -297,32 +346,30 @@ async function followCheck(searchId, cards, token) {
       const card = cards.get(key);
       if (card && card.dataset.check !== verdict.verdict) setCheck(card, verdict);
     }
-    status.textContent = `التحقق البصري ${job.done}/${job.total} · vision double-check ${job.done} of ${job.total}`;
+    status.textContent = t("check.progress", { done: job.done, total: job.total });
     if (job.status === "done") {
       const order = job.results.map((r) => cards.get(r.track_key)).filter(Boolean);
       job.results.forEach((r) => { const card = cards.get(r.track_key); if (card) $(".rank", card).textContent = `#${r.rank}`; });
       $("#results").replaceChildren(...order);
       const count = (v) => Object.values(job.verdicts).filter((x) => x.verdict === v).length;
-      const [yes, no, unsure] = [count("confirmed"), count("rejected"), count("unsure")];
-      status.textContent = `اكتمل التحقق البصري: ${yes} مؤكدة، ${no} مرفوضة نزلت إلى الأسفل، ${unsure} غير مؤكدة · `
-        + `double-check done: ${yes} confirmed and moved up, ${no} rejected and moved down, ${unsure} unsure · ${job.took_ms} ms`;
+      status.textContent = t("check.done", { confirmed: count("confirmed"), rejected: count("rejected"), unsure: count("unsure"), ms: job.took_ms });
       return;
     }
     if (job.status === "failed") {
-      status.textContent = `تعذّر التحقق البصري · double-check failed: ${job.error || ""}`;
+      status.textContent = t("check.failed", { error: isolate(job.error || "") });
       return;
     }
     if (job.status === "cancelled" || job.status === "interrupted") {
-      status.textContent = `توقّف التحقق البصري بعد ${job.done} من ${job.total}، والترتيب لم يتغير · `
-        + `double-check stopped after ${job.done} of ${job.total} (${job.reason || job.status}); the order is unchanged`;
+      status.textContent = t("check.stopped", { done: job.done, total: job.total, reason: job.reason || job.status });
       return;
     }
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 }
 
-function resultCard(result, searchId, checking) {
+function resultCard(result, searchId, checking, fields) {
   const card = $("#result-card").content.firstElementChild.cloneNode(true);
+  translatePage(card);
   const video = $("video", card);
   $(".crop", card).src = result.crop_url;
   if (result.video_url) {
@@ -340,25 +387,25 @@ function resultCard(result, searchId, checking) {
   }
   $(".rank", card).textContent = `#${result.rank}`;
   $(".camera", card).textContent = result.camera_id;
-  $(".label-badge", card).textContent = LABELS[result.label] || result.label;
+  $(".label-badge", card).textContent = word("label", result.label);
   $(".score", card).textContent = result.similarity == null
-    ? `score ${result.score.toFixed(3)}`
-    : `score ${result.score.toFixed(2)} · similarity ${result.similarity.toFixed(3)}`;
+    ? t("card.score", { score: result.score.toFixed(3) })
+    : t("card.scoreSimilarity", { score: result.score.toFixed(2), similarity: result.similarity.toFixed(3) });
   $(".place", card).textContent = result.place;
   $(".time", card).textContent = `${fmtTime(result.time)}  (${fmtTime(result.seen_from).slice(11)} – ${fmtTime(result.seen_to).slice(11)})`;
   if (result.why) {
     const why = $(".why", card);
-    why.replaceChildren(...whyChips(result.why));
-    if (!result.described) why.append(el("span", { class: "muted small", text: "no attributes for this track" }));
+    why.replaceChildren(...whyChips(result.why, fields));
+    if (!result.described) why.append(el("span", { class: "muted small", text: t("card.noAttributes") }));
   }
-  if (checking) $(".check", card).replaceChildren(el("div", { class: "verdict-badge verdict-pending", text: VERDICTS.pending }));
+  if (checking) $(".check", card).replaceChildren(el("div", { class: "verdict-badge verdict-pending", text: t("verdict.pending") }));
   for (const verdict of ["confirm", "reject"]) {
     $(`.${verdict}`, card).addEventListener("click", async () => {
       try {
         await postJSON("/api/feedback", { search_id: searchId, track_key: result.track_key, verdict, actor: actor() });
         card.dataset.verdict = verdict;
       } catch (err) {
-        alert(`خطأ · error: ${err.message}`);
+        alert(errorText(err));
       }
     });
   }
@@ -385,6 +432,10 @@ function renderExamples() {
 let traceToken = 0;
 let traceCheck = null; // the traced hybrid search whose double-check the page is following
 
+function modeTitle(mode) {
+  return t(mode === "hybrid" ? "mode.hybrid" : "mode.baseline");
+}
+
 async function runTrace(event) {
   event?.preventDefault();
   const query = $("#trace-query").value.trim();
@@ -393,26 +444,25 @@ async function runTrace(event) {
   cancelCheck(traceCheck);
   traceCheck = null;
   const status = $("#trace-status");
-  status.textContent = "جارٍ التتبع في الوضعين… · tracing both modes…";
+  status.textContent = t("trace.tracing");
   $("#trace-columns").replaceChildren();
   const body = { query, ...searchFilters(), actor: actor(), case_id: $("#case-id").value.trim() || null };
   try {
     const baseline = await postJSON("/api/search?trace=1", { ...body, mode: "baseline" });
     const hybrid = await postJSON("/api/search?trace=1", { ...body, mode: "hybrid" });
     if (token !== traceToken) return;
-    status.textContent = `الخيار أ ${baseline.took_ms} ms · الهجين ${hybrid.took_ms} ms · option A ${baseline.took_ms} ms, hybrid ${hybrid.took_ms} ms (first results)`;
-    const columns = [traceColumn(baseline.trace, ["الخيار أ", "Option A baseline"]), traceColumn(hybrid.trace, ["الهجين", "Hybrid (phase 2)"])];
-    $("#trace-columns").replaceChildren(...columns);
+    status.textContent = t("trace.times", { baseline: baseline.took_ms, hybrid: hybrid.took_ms });
+    $("#trace-columns").replaceChildren(traceColumn(baseline.trace), traceColumn(hybrid.trace));
     if (hybrid.check && hybrid.check.status !== "skipped") {
       traceCheck = hybrid.search_id;
-      followTrace(hybrid.search_id, 1, ["الهجين", "Hybrid (phase 2)"], token);
+      followTrace(hybrid.search_id, 1, token);
     }
   } catch (err) {
-    status.textContent = `خطأ · error: ${err.message}`;
+    status.textContent = errorText(err);
   }
 }
 
-async function followTrace(searchId, index, title, token) {
+async function followTrace(searchId, index, token) {
   for (;;) {
     await new Promise((resolve) => setTimeout(resolve, 1500));
     if (token !== traceToken) return;
@@ -424,7 +474,7 @@ async function followTrace(searchId, index, title, token) {
     }
     const columns = $("#trace-columns");
     const old = columns.children[index];
-    if (old) old.replaceWith(traceColumn(trace, title));
+    if (old) old.replaceWith(traceColumn(trace));
     const check = trace.stages.find((s) => s.key === "check");
     if (!check || CHECK_FINISHED.includes(check.output.status)) {
       if (traceCheck === searchId) traceCheck = null;
@@ -439,30 +489,31 @@ async function openTrace(searchId) {
   $("#trace-id").value = searchId;
   const token = ++traceToken;
   const status = $("#trace-status");
-  status.textContent = "جارٍ فتح التتبع… · opening the trace…";
+  status.textContent = t("trace.opening");
   try {
     const trace = await api(`/api/search/${encodeURIComponent(searchId)}/trace`);
     if (token !== traceToken) return;
-    const title = trace.mode === "hybrid" ? ["الهجين", "Hybrid (phase 2)"] : ["الخيار أ", "Option A baseline"];
-    status.textContent = `بحث محفوظ · stored search ${searchId}`;
-    $("#trace-columns").replaceChildren(traceColumn(trace, title));
+    status.textContent = t("trace.stored", { id: searchId });
+    $("#trace-columns").replaceChildren(traceColumn(trace));
     const check = trace.stages.find((s) => s.key === "check");
-    if (check && ["queued", "running"].includes(check.output.status)) followTrace(searchId, 0, title, token);
+    if (check && ["queued", "running"].includes(check.output.status)) followTrace(searchId, 0, token);
   } catch (err) {
-    status.textContent = `خطأ · error: ${err.message}`;
+    status.textContent = errorText(err);
   }
 }
 
 function thumb(url, size = "small") {
-  return url ? el("img", { class: `thumb thumb-${size}`, src: url, alt: "crop", loading: "lazy" }) : el("span");
+  return url ? el("img", { class: `thumb thumb-${size}`, src: url, alt: t("trace.cropAlt"), loading: "lazy" }) : el("span");
 }
 
 function shortKey(key) {
   return key ? key.split("/").pop() : "";
 }
 
+// A definition list of [table key, value] pairs; empty values are left out.
 function kv(pairs) {
-  return el("dl", { class: "kv" }, ...pairs.filter(([, v]) => v != null && v !== "").flatMap(([k, v]) => [el("dt", { text: k }), el("dd", { dir: "auto" }, v)]));
+  return el("dl", { class: "kv" }, ...pairs.filter(([, v]) => v != null && v !== "")
+    .flatMap(([k, v]) => [el("dt", { text: t(`kv.${k}`) }), el("dd", { dir: "auto" }, v)]));
 }
 
 function pre(value) {
@@ -473,128 +524,141 @@ function details(summary, ...content) {
   return el("details", {}, el("summary", { text: summary }), ...content);
 }
 
+// A table with headers named by table keys under "col.".
 function table(headers, rows) {
-  return el("div", { class: "table-wrap" }, el("table", { class: "trace-table", dir: "ltr" },
-    el("thead", {}, el("tr", {}, ...headers.map((h) => el("th", { text: h })))),
+  return el("div", { class: "table-wrap" }, el("table", { class: "trace-table" },
+    el("thead", {}, el("tr", {}, ...headers.map((h) => el("th", { text: h ? t(`col.${h}`) : "" })))),
     el("tbody", {}, ...rows.map((cells) => el("tr", {}, ...cells.map((c) => el("td", {}, c)))))));
 }
 
-function trackValue(value) {
-  if (value == null) return "nothing";
+// What a track's description holds for one compared field, in the page language.
+const TRACK_WORDS = { gender: "gender", age_band: "age", upper_garment: "noun", lower_garment: "noun", hair_colour: "hairColour", hair_length: "hairLength" };
+
+function trackValue(value, field) {
+  if (value == null) return t("value.nothing");
   if (Array.isArray(value)) {
-    if (!value.length) return "nothing";
-    return value.map((v) => (typeof v === "object" ? `${(v.colours || []).join("/")} ${v.object}`.trim() : v)).join(", ");
+    if (!value.length) return t("value.nothing");
+    return list(value.map((v) => (typeof v === "object" ? phrase(v.colours, v.object) : word("colour", v))));
   }
-  if (typeof value === "object") return `${(value.colours || []).join("/")} ${value.type || value.object || "none"}`.trim();
-  return String(value);
+  if (typeof value === "object") return value.type || value.object ? phrase(value.colours, value.type || value.object) : t("value.none");
+  return word(TRACK_WORDS[field] || "value", value);
 }
 
-function traceColumn(trace, title) {
+function traceColumn(trace) {
   const crops = new Map();
   for (const stage of trace.stages) {
     const rows = Array.isArray(stage.output) ? stage.output : stage.output?.rows;
     for (const row of rows || []) if (row.crop_url) crops.set(row.track_key, row.crop_url);
   }
+  const fields = trace.stages.find((s) => s.key === "parse")?.output?.fields;
   const models = trace.models || {};
   const query = models.query_model;
+  const request = trace.request;
   const head = el("header", { class: "trace-head" },
-    el("h3", {}, ...bi(title[0], title[1])),
+    el("h3", { text: modeTitle(trace.mode) }),
     kv([
-      ["search id", trace.search_id],
+      ["searchId", trace.search_id],
       ["mode", trace.mode],
-      ["first results", trace.took_ms != null ? `${trace.took_ms} ms` : null],
-      ["cameras", (trace.request.cameras || ["all"]).join(", ")],
-      ["time", trace.request.time_from || trace.request.time_to ? `${trace.request.time_from || "…"} → ${trace.request.time_to || "…"}` : "any"],
+      ["firstResults", ms(trace.took_ms)],
+      ["cameras", request.cameras ? list(request.cameras) : t("value.allCameras")],
+      ["time", request.time_from || request.time_to ? `${request.time_from || "…"} → ${request.time_to || "…"}` : t("value.anyTime")],
       ["embedder", models.embedder],
-      ["query model", query ? `${query.model}${query.quantization ? ` (${query.quantization}, ${query.parameters})` : ""} · Ollama ${query.ollama_version || "?"} · ${query.status}` : null],
-      ["vision model", models.vision_model],
+      ["queryModel", query ? `${query.model}${query.quantization ? ` (${query.quantization}, ${query.parameters})` : ""} · Ollama ${query.ollama_version || "?"} · ${query.status}` : null],
+      ["visionModel", models.vision_model],
     ]),
     ...(trace.notes || []).map((n) => el("p", { class: "note", text: n })));
-  const stages = STAGE_ORDER.map((key) => {
+  const stages = STAGE_ORDER.map((key, i) => {
     const stage = trace.stages.find((s) => s.key === key);
-    const [ar, en] = STAGE_TITLES[key];
-    const index = STAGE_ORDER.indexOf(key) + 1;
+    const title = `${i + 1}. ${t(`stage.${key}`)}`;
     if (!stage) {
       return el("article", { class: "stage stage-absent" },
-        el("h4", {}, `${index}. `, ...bi(ar, en)),
-        el("p", { class: "muted small" }, trace.mode === "baseline" ? "ليست جزءاً من الخيار أ · not part of option A" : "لم تُنفّذ بعد · not run yet"));
+        el("h4", { text: title }),
+        el("p", { class: "muted small", text: t(trace.mode === "baseline" ? "trace.notInBaseline" : "trace.notRunYet") }));
     }
     return el("article", { class: `stage stage-${key}` },
-      el("h4", {}, `${index}. `, ...bi(ar, en), el("span", { class: "ms", text: stage.ms != null ? `${stage.ms} ms` : "" })),
-      stageBody(key, stage.output || {}, crops));
+      el("h4", {}, title, el("span", { class: "ms", text: ms(stage.ms) ?? "" })),
+      stageBody(key, stage.output || {}, crops, fields));
   });
   return el("section", { class: "trace-col" }, head, ...stages);
 }
 
-function stageBody(key, out, crops) {
+function stageBody(key, out, crops, fields) {
   switch (key) {
     case "input":
-      return kv([["text", out.text], ["characters", out.characters], ["script", out.script]]);
+      return kv([["text", out.text], ["characters", out.characters], ["script", maybe(`script.${slug(out.script)}`, out.script)]]);
     case "parse":
       if (out.error) return el("div", {}, el("p", { class: "error", text: out.error }), kv([["fallback", out.fallback]]), out.raw ? pre(out.raw) : null);
       return el("div", {},
         el("div", { class: "parsed-chips" }, ...fieldChips({ ...out.fields, english: out.english })),
-        el("p", { class: "parsed-english", dir: "ltr" }, "English rewrite: ", el("q", { text: out.english })),
-        kv([["model", out.model], ["model time", out.cached ? "cached (asked before)" : `${out.model_ms} ms`],
-          ["tokens in / out", out.prompt_tokens != null ? `${out.prompt_tokens} / ${out.output_tokens}` : null],
-          ["load", out.load_ms ? `${out.load_ms} ms` : null]]),
-        details("the model's raw JSON", pre(out.raw)));
+        el("p", { class: "parsed-english" }, t("parsed.english"), " ", el("span", { dir: "ltr", lang: "en", text: `“${out.english}”` })),
+        kv([["model", out.model], ["modelTime", out.cached ? t("value.cached") : ms(out.model_ms)],
+          ["tokens", out.prompt_tokens != null ? `${out.prompt_tokens} / ${out.output_tokens}` : null],
+          ["load", out.load_ms ? ms(out.load_ms) : null]]),
+        details(t("trace.rawJson"), pre(out.raw)));
     case "embed":
-      return el("div", {}, kv([["model", out.model], ["text input", out.padding]]),
-        ...(out.texts || []).map((t) => el("div", { class: "embed" },
-          el("strong", { text: `${t.role}: ` }), el("q", { dir: "auto", text: t.text }),
-          el("div", { class: "muted small", dir: "ltr", text: `${t.dim} numbers, length ${t.norm}; first: [${t.first.join(", ")}, …]` }))));
+      return el("div", {}, kv([["model", out.model], ["textInput", out.padding]]),
+        ...(out.texts || []).map((v) => el("div", { class: "embed" },
+          el("strong", { text: `${maybe(`embedRole.${slug(v.role)}`, v.role)}: ` }), el("span", { text: t("trace.quoted", { text: isolate(v.text) }) }),
+          el("div", { class: "muted small", text: t("trace.vector", { dim: v.dim, norm: v.norm, first: v.first.join(", ") }) }))));
     case "filter":
       return el("div", {}, el("ul", { dir: "ltr" }, ...(out.explain || []).map((line) => el("li", { text: line }))),
-        kv([["cameras", Array.isArray(out.cameras) ? out.cameras.join(", ") : out.cameras], ["from", out.time_from], ["to", out.time_to],
-          ["labels", Array.isArray(out.labels) ? out.labels.join(", ") : out.labels], ["drop gender", out.exclude_gender]]),
-        details("Qdrant filter", pre(out.qdrant_filter)));
+        kv([["cameras", Array.isArray(out.cameras) ? list(out.cameras) : out.cameras], ["from", out.time_from], ["to", out.time_to],
+          ["labels", Array.isArray(out.labels) ? list(out.labels.map((l) => word("label", l))) : out.labels], ["dropGender", out.exclude_gender]]),
+        details(t("trace.qdrantFilter"), pre(out.qdrant_filter)));
     case "candidates": {
       const rows = out.rows || [];
       const sims = rows.length && rows[0].sim_english != null;
       return el("div", {},
-        kv([["tracks asked per text", out.pool_per_text], ["found by the English rewrite", out.found_by_english],
-          ["found by the original text", out.found_by_original], ["candidate tracks", out.tracks], ["crops scored", out.crops_scored]]),
-        table(sims ? ["", "track", "camera", "cos English", "cos original", "similarity"] : ["", "track", "camera", "label", "cosine"],
+        kv([["perText", out.pool_per_text], ["foundByEnglish", out.found_by_english],
+          ["foundByOriginal", out.found_by_original], ["candidateTracks", out.tracks], ["cropsScored", out.crops_scored]]),
+        table(sims ? ["", "track", "camera", "cosEnglish", "cosOriginal", "similarity"] : ["", "track", "camera", "label", "cosine"],
           rows.slice(0, 20).map((r) => sims
             ? [thumb(r.crop_url), shortKey(r.track_key), r.camera_id, num(r.sim_english), num(r.sim_original), num(r.similarity)]
-            : [thumb(r.crop_url), shortKey(r.track_key), r.camera_id, r.label, num(r.similarity)])),
-        rows.length > 20 ? el("p", { class: "muted small", text: `showing 20 of ${rows.length} kept in the trace` }) : null);
+            : [thumb(r.crop_url), shortKey(r.track_key), r.camera_id, word("label", r.label), num(r.similarity)])),
+        rows.length > 20 ? el("p", { class: "muted small", text: t("trace.showing", { shown: 20, n: rows.length }) }) : null);
     }
     case "attributes":
       return el("div", {},
-        kv([["fields the query names", (out.query_fields || []).join(", ") || "none"],
-          ["tracks with attributes", out.described_tracks], ["values", Object.entries(out.values || {}).map(([k, v]) => `${k} ${v}`).join(", ")]]),
-        table(["", "track", "attribute score", "per field (query → track)"], (out.rows || []).slice(0, 15).map((r) => [
+        // Every row compares the same query fields in the same order, so the first row names them.
+        kv([["queryFields", list(out.rows?.length ? out.rows[0].matches.map((m) => whyLabel(m, fields)) : out.query_fields || []) || t("value.none")],
+          ["describedTracks", out.described_tracks],
+          ["values", list(Object.entries(out.values || {}).map(([k, v]) => `${word("why", k)} ${v}`))]]),
+        table(["", "track", "attributeScore", "perField"], (out.rows || []).slice(0, 15).map((r) => [
           thumb(crops.get(r.track_key)), shortKey(r.track_key), num(r.attribute_score, 2),
-          el("div", {}, ...r.matches.map((m) => el("span", { class: `why-chip why-${m.result}`, text: `${MARKS[m.result]} ${m.label} → ${trackValue(m.track)}` }))),
+          el("div", { dir: "auto" }, ...r.matches.map((m) => el("span", {
+            class: `why-chip why-${m.result}`, text: `${MARKS[m.result]} ${t("trace.matchPair", { query: whyLabel(m, fields), track: trackValue(m.track, m.field) })}`,
+          }))),
         ])));
     case "fusion":
       return el("div", {}, el("p", { class: "formula", dir: "ltr", text: out.formula }),
-        kv([["pool similarity mean", num(out.similarity_mean)], ["pool similarity std", num(out.similarity_std)]]),
+        kv([["similarityMean", num(out.similarity_mean)], ["similarityStd", num(out.similarity_std)]]),
         table(["", "track", "similarity", "z", "attribute", "score"], (out.rows || []).slice(0, 15).map((r) => [
           thumb(crops.get(r.track_key)), shortKey(r.track_key), num(r.similarity), num(r.z, 2), num(r.attribute_score, 2), num(r.score, 2)])));
     case "ranking":
       return el("div", { class: "rank-grid" }, ...(Array.isArray(out) ? out : []).map((r) => el("figure", {},
-        thumb(r.crop_url, "medium"), el("figcaption", { dir: "ltr" }, `#${r.rank} ${shortKey(r.track_key)} · ${num(r.score, 2)}`,
-          r.why ? el("div", {}, ...whyChips(r.why)) : null))));
+        thumb(r.crop_url, "medium"), el("figcaption", {}, el("span", { dir: "ltr", text: `#${r.rank} ${shortKey(r.track_key)} · ${num(r.score, 2)}` }),
+          r.why ? el("div", {}, ...whyChips(r.why, fields)) : null))));
     case "check": {
       const verdicts = Object.entries(out.verdicts || {});
       return el("div", {},
-        kv([["status", out.status], ["checked", `${out.done} of ${out.total}`], ["model", out.model], ["took", out.took_ms ? `${out.took_ms} ms` : null],
-          ["details asked", (out.details || []).map((d) => `${d.text}${d.key ? "" : " (advisory)"}`).join("; ")], ["note", out.reason || out.error]]),
-        table(["", "track", "verdict", "answers", "note", "ms"], verdicts.map(([key, v]) => [
-          el("span", {}, ...(v.crops || []).map((u) => thumb(u))), shortKey(key),
-          el("span", { class: `verdict-badge verdict-${v.verdict}`, text: v.verdict }),
-          el("div", {}, ...Object.entries(v.answers || {}).map(([d, a]) => el("span", { class: `why-chip answer-${a}`, text: `${d}: ${a}` }))),
-          el("span", { class: "small", text: v.note || "" }), v.ms ?? ""])));
+        kv([["status", word("jobStatus", out.status)], ["checked", t("trace.checked", { done: out.done, total: out.total })], ["model", out.model],
+          ["took", out.took_ms ? ms(out.took_ms) : null],
+          ["detailsAsked", (out.details || []).map((d) => (d.key ? d.text : t("trace.advisory", { text: isolate(d.text) }))).join("; ")],
+          ["note", out.reason || out.error]]),
+        table(["", "track", "verdict", "answers", "note", "ms"], verdicts.map(([trackKey, v]) => [
+          el("span", {}, ...(v.crops || []).map((u) => thumb(u))), shortKey(trackKey),
+          el("span", { class: `verdict-badge verdict-${v.verdict}`, text: word("verdictShort", v.verdict) }),
+          el("div", {}, ...Object.entries(v.answers || {}).map(([d, a]) => answerChip(d, a))),
+          el("span", { class: "small", dir: "auto", text: v.note || "" }), v.ms ?? ""])));
     }
     case "final":
       return el("div", { class: "rank-grid" }, ...(Array.isArray(out) ? out : []).map((r) => {
         const moved = r.rank_before_check - r.rank;
         const arrow = moved > 0 ? `↑${moved}` : moved < 0 ? `↓${-moved}` : "=";
+        const check = r.check.replace(" ", "-");
         return el("figure", {}, thumb(r.crop_url, "medium"),
-          el("figcaption", { dir: "ltr" }, `#${r.rank} (${arrow}) ${shortKey(r.track_key)}`, el("div", { class: `verdict-badge verdict-${r.check.replace(" ", "-")}`, text: r.check })));
+          el("figcaption", {}, el("span", { dir: "ltr", text: `#${r.rank} (${arrow}) ${shortKey(r.track_key)}` }),
+            el("div", { class: `verdict-badge verdict-${check}`, text: word("verdictShort", check) })));
       }));
     default:
       return pre(out);
@@ -613,7 +677,7 @@ async function loadRecordingChoices() {
   const select = $("#rectrace-recording");
   const current = select.value;
   select.replaceChildren(...recordings.filter((r) => r.status === "indexed").map((r) =>
-    el("option", { value: r.id, text: `${r.camera_id} · ${fmtTime(r.start_time)} · ${r.track_count} tracks` })));
+    el("option", { value: r.id, text: t("rectrace.option", { camera: r.camera_id, start: fmtTime(r.start_time), n: r.track_count }) })));
   if (current) select.value = current;
 }
 
@@ -623,13 +687,13 @@ async function runRecordingTrace(event, at) {
   if (!id) return;
   const moments = at ?? $("#rectrace-at").value.trim();
   const status = $("#rectrace-status");
-  status.textContent = "جارٍ فك الإطارات وتشغيل الكاشف… · decoding frames and running the detector…";
+  status.textContent = t("rectrace.running");
   try {
     const trace = await api(`/api/recordings/${id}/trace${moments ? `?at=${encodeURIComponent(moments)}` : ""}`);
     status.textContent = "";
     $("#rectrace").replaceChildren(...recordingTrace(trace));
   } catch (err) {
-    status.textContent = `خطأ · error: ${err.message}`;
+    status.textContent = errorText(err);
   }
 }
 
@@ -639,44 +703,50 @@ function frameFigure(frame, fps) {
     style: `left:${box[0] * 100}%;top:${box[1] * 100}%;width:${(box[2] - box[0]) * 100}%;height:${(box[3] - box[1]) * 100}%`,
   }, el("span", { text: label }));
   return el("figure", { class: "frame" },
-    el("div", { class: "frame-image" }, el("img", { src: frame.url, alt: `frame at ${frame.t} s` }),
-      ...frame.detections.map((d) => boxes(d.box, "det", `${d.label} ${d.confidence.toFixed(2)}`)),
-      ...frame.tracks.map((t) => boxes(t.box, "trk", t.track_id))),
-    el("figcaption", { dir: "ltr" }, `t = ${frame.t.toFixed(2)} s · ${frame.detections.length} detections (${frame.detect_ms} ms) · `
-      + `${frame.tracks.length} indexed tracks at this sampled frame (1 frame every ${(1 / fps).toFixed(2)} s)`));
+    el("div", { class: "frame-image", dir: "ltr" }, el("img", { src: frame.url, alt: t("rectrace.frameAlt", { t: frame.t }) }),
+      ...frame.detections.map((d) => boxes(d.box, "det", `${word("label", d.label)} ${d.confidence.toFixed(2)}`)),
+      ...frame.tracks.map((tr) => boxes(tr.box, "trk", tr.track_id))),
+    el("figcaption", {
+      text: t("rectrace.frameCaption", {
+        t: frame.t.toFixed(2), detections: frame.detections.length, ms: frame.detect_ms,
+        tracks: frame.tracks.length, every: (1 / fps).toFixed(2),
+      }),
+    }));
 }
 
 function attributeSummary(attrs) {
   if (!attrs) return "–";
-  if (!attrs.attributes) return attrs.error ? "unreadable reply" : "–";
+  if (!attrs.attributes) return attrs.error ? t("rectrace.unreadable") : "–";
   const a = attrs.attributes;
   if (a.subject === "bag") return trackValue(a.carried);
-  return [a.gender, a.age_band, a.upper && `${a.upper.colours.join("/")} ${a.upper.garment || ""}`.trim(),
-    a.lower && `${a.lower.colours.join("/")} ${a.lower.garment || ""}`.trim(), a.hair?.colour && `${a.hair.colour} hair`,
-    a.headwear?.type, a.carried?.length && `carries ${trackValue(a.carried)}`].filter(Boolean).join(" · ");
+  const part = (p) => p && (p.colours.length || p.garment) ? phrase(p.colours, p.garment) : null;
+  return [word("gender", a.gender), word("age", a.age_band), part(a.upper), part(a.lower),
+    a.hair?.colour && hairPhrase(a.hair.colour, null), a.headwear?.type && word("noun", a.headwear.type),
+    a.carried?.length && t("parsed.carries", { thing: trackValue(a.carried) })].filter(Boolean).join(" · ");
 }
 
 function trackDetails(track, onFrame) {
   const chosen = track.crops.map((c) => el("figure", {}, thumb(c.url, "medium"),
-    el("figcaption", { dir: "ltr", text: `t ${c.t.toFixed(2)} s · quality ${num(c.quality)}` })));
+    el("figcaption", { text: t("rectrace.cropCaption", { t: c.t.toFixed(2), quality: num(c.quality) }) })));
   const pool = track.selection?.candidates || [];
   const attrs = track.attributes;
+  const selection = track.selection;
   return el("div", { class: "track-details" },
-    el("h5", {}, ...bi("اللقطات المختارة", "The chosen crops")), el("div", { class: "rank-grid" }, ...chosen),
-    track.crops.length ? el("button", { type: "button", onclick: () => onFrame(track.crops[0].t) },
-      ...bi("اعرض الإطار عند أول لقطة", "Show the frame at the first crop")) : null,
-    el("h5", {}, ...bi("لماذا اختيرت", "Why these crops")),
-    track.selection ? el("p", { class: "muted small", dir: "ltr", text:
-      `${track.selection.detections} detections in the track; the best ${track.selection.pool_capacity} by quality are kept as candidates; `
-      + `min_gap ${track.selection.min_gap} s; detector labels ${JSON.stringify(track.selection.labels)}` }) : el("p", { class: "muted", text: "no selection record (indexed before phase 2)" }),
-    pool.length ? table(["t (s)", "quality", "confidence", "size", "edge", "picked", "reason"], pool.map((c) => [
+    el("h5", { text: t("rectrace.chosenCrops") }), el("div", { class: "rank-grid" }, ...chosen),
+    track.crops.length ? el("button", { type: "button", onclick: () => onFrame(track.crops[0].t), text: t("rectrace.showFrame") }) : null,
+    el("h5", { text: t("rectrace.whyCrops") }),
+    selection ? el("p", { class: "muted small", text: t("rectrace.selection", {
+      detections: selection.detections, kept: selection.pool_capacity, gap: selection.min_gap,
+      labels: isolate(JSON.stringify(selection.labels)),
+    }) }) : el("p", { class: "muted", text: t("rectrace.noSelection") }),
+    pool.length ? table(["t", "quality", "confidence", "size", "edge", "picked", "reason"], pool.map((c) => [
       c.t.toFixed(2), num(c.quality), num(c.confidence), num(c.size), c.edge, c.chosen ? "✓" : "", c.reason])) : null,
-    el("h5", {}, ...bi("السمات المرفقة", "Attributes attached")),
-    attrs ? el("div", {}, kv([["source", attrs.source], ["time", attrs.ms != null ? `${attrs.ms} ms` : null],
+    el("h5", { text: t("rectrace.attributes") }),
+    attrs ? el("div", {}, kv([["source", attrs.source], ["time", ms(attrs.ms)],
       ["summary", attributeSummary(attrs)], ["sentence", attrs.attributes?.description], ["error", attrs.error]]),
-      details("attributes JSON", pre(attrs.attributes)), attrs.raw ? details("the vision model's raw reply", pre(attrs.raw)) : null,
-      attrs.probabilities ? details("SigLIP 2 prompt probabilities", pre(attrs.probabilities)) : null)
-      : el("p", { class: "muted", text: "no attributes (indexed without the attribute step)" }));
+    details(t("rectrace.attributesJson"), pre(attrs.attributes)), attrs.raw ? details(t("rectrace.rawReply"), pre(attrs.raw)) : null,
+    attrs.probabilities ? details(t("rectrace.probabilities"), pre(attrs.probabilities)) : null)
+      : el("p", { class: "muted", text: t("rectrace.noAttributes") }));
 }
 
 function recordingTrace(trace) {
@@ -686,44 +756,45 @@ function recordingTrace(trace) {
   const models = stats.models || {};
   const out = [];
   out.push(el("div", { class: "cards-row" },
-    el("article", { class: "stage" }, el("h4", {}, ...bi("التسجيل", "Recording")), kv([
-      ["camera", rec.camera_id], ["place", rec.place], ["start (local)", fmtTime(rec.start_time)], ["length", fmtDuration(rec.duration_s)],
-      ["size", `${rec.width}x${rec.height}`], ["video", stats.video ? `${stats.video.fps?.toFixed(1)} fps` : null], ["file", rec.original_name]])),
-    el("article", { class: "stage" }, el("h4", {}, ...bi("آخر فهرسة", "Last indexing")), stats.frames != null ? kv([
-      ["frames sampled", stats.frames], ["detections", stats.detections], ["tracks kept", stats.tracks],
-      ["short tracks dropped", stats.dropped_short_tracks], ["indexing time", `${stats.seconds} s`],
-      ["attributes", stats.attributes_source ? `${stats.attributes_source}, ${stats.attributes_seconds} s` : "none"],
-      ["detector", models.detector ? `${models.detector}, threshold ${models.detection_threshold}` : null],
+    el("article", { class: "stage" }, el("h4", { text: t("rectrace.recordingCard") }), kv([
+      ["camera", rec.camera_id], ["place", rec.place], ["startLocal", fmtTime(rec.start_time)], ["length", fmtDuration(rec.duration_s)],
+      ["size", `${rec.width}x${rec.height}`], ["video", stats.video ? t("unit.fps", { fps: stats.video.fps?.toFixed(1) }) : null],
+      ["file", rec.original_name]])),
+    el("article", { class: "stage" }, el("h4", { text: t("rectrace.lastIndexing") }), stats.frames != null ? kv([
+      ["framesSampled", stats.frames], ["detections", stats.detections], ["tracksKept", stats.tracks],
+      ["shortTracksDropped", stats.dropped_short_tracks], ["indexingTime", t("unit.s", { s: stats.seconds })],
+      ["attributes", stats.attributes_source ? t("rectrace.attributesTime", { source: stats.attributes_source, s: stats.attributes_seconds }) : t("value.none")],
+      ["detector", models.detector ? t("rectrace.detector", { detector: models.detector, threshold: models.detection_threshold }) : null],
       ["embedder", models.embedder ? `${models.embedder}@${(models.embedder_revision || "").slice(0, 10)}` : null],
-      ["vision model", models.vlm], ["indexed at", rec.indexed_at]]) : el("p", { class: "muted", text: "no stats (indexed before phase 2)" })),
-    el("article", { class: "stage" }, el("h4", {}, ...bi("القواعد", "Rules")), kv([
-      ["sampling", `${rules.sample_fps} frames per second`], ["detector threshold", rules.detector_threshold],
-      ["a track needs", `${rules.min_track_detections} detections`], ["crops per track", rules.crops_per_track],
-      ["candidates kept", rules.pool_capacity], ["smallest crop", `${rules.min_crop_height_px.person} px person, ${rules.min_crop_height_px.bag} px bag`],
+      ["visionModel", models.vlm], ["indexedAt", rec.indexed_at]]) : el("p", { class: "muted", text: t("rectrace.noStats") })),
+    el("article", { class: "stage" }, el("h4", { text: t("rectrace.rules") }), kv([
+      ["sampling", t("rectrace.sampling", { fps: rules.sample_fps })], ["detectorThreshold", rules.detector_threshold],
+      ["trackNeeds", t("rectrace.trackNeeds", { n: rules.min_track_detections })], ["cropsPerTrack", rules.crops_per_track],
+      ["candidatesKept", rules.pool_capacity],
+      ["smallestCrop", t("rectrace.smallestCrop", { person: rules.min_crop_height_px.person, bag: rules.min_crop_height_px.bag })],
       ["quality", rules.quality], ["spacing", rules.spacing]]))));
-  out.push(el("h3", {}, ...bi("إطارات مأخوذة وصناديق الكشف", "Sampled frames with detection boxes")));
-  out.push(el("p", { class: "muted small" }, ...bi("الأزرق: ما يراه الكاشف الآن على هذا الإطار. الأصفر المتقطع: المسارات المحفوظة عند هذه اللحظة.",
-    "Solid blue: what the detector finds on this frame now. Dashed yellow: the indexed tracks at this moment.")));
+  out.push(el("h3", { text: t("rectrace.framesTitle") }));
+  out.push(el("p", { class: "muted small", text: t("rectrace.framesNote") }));
   if (trace.frames) out.push(el("div", { class: "frames" }, ...trace.frames.frames.map((f) => frameFigure(f, rules.sample_fps))));
-  else out.push(el("p", { class: "error", text: `frames unavailable: ${trace.frames_error}` }));
-  out.push(el("h3", {}, ...bi(`المسارات (${trace.tracks.length})`, `Tracks found (${trace.tracks.length})`)));
-  const onFrame = (t) => runRecordingTrace(null, String(t));
-  const rows = trace.tracks.map((t) => {
+  else out.push(el("p", { class: "error", text: t("rectrace.framesUnavailable", { error: trace.frames_error }) }));
+  out.push(el("h3", { text: t("rectrace.tracksTitle", { n: trace.tracks.length }) }));
+  const onFrame = (at) => runRecordingTrace(null, String(at));
+  const rows = trace.tracks.map((tr) => {
     const row = el("tr", { class: "track-row" },
-      el("td", {}, thumb(t.crops[0]?.url)), el("td", { text: t.track_id }), el("td", { text: t.label }),
-      el("td", { dir: "ltr", text: `${t.t_start.toFixed(1)}–${t.t_end.toFixed(1)} s` }), el("td", { text: t.detections }),
-      el("td", { text: t.crops.length }), el("td", { dir: "ltr", text: attributeSummary(t.attributes) }));
+      el("td", {}, thumb(tr.crops[0]?.url)), el("td", { dir: "ltr", text: tr.track_id }), el("td", { text: word("label", tr.label) }),
+      el("td", { text: t("unit.secondsRange", { from: tr.t_start.toFixed(1), to: tr.t_end.toFixed(1) }) }), el("td", { text: tr.detections }),
+      el("td", { text: tr.crops.length }), el("td", { text: attributeSummary(tr.attributes) }));
     const detailRow = el("tr", { class: "track-detail", hidden: true }, el("td", { colspan: 7 }));
     row.addEventListener("click", () => {
-      if (detailRow.hidden && !detailRow.firstChild.firstChild) detailRow.firstChild.append(trackDetails(t, onFrame));
+      if (detailRow.hidden && !detailRow.firstChild.firstChild) detailRow.firstChild.append(trackDetails(tr, onFrame));
       detailRow.hidden = !detailRow.hidden;
     });
     return [row, detailRow];
   });
   out.push(el("div", { class: "table-wrap" }, el("table", { class: "trace-table" },
-    el("thead", {}, el("tr", {}, ...["", "track", "label", "seen", "detections", "crops", "attributes"].map((h) => el("th", { text: h })))),
+    el("thead", {}, el("tr", {}, ...["", "track", "label", "seen", "detections", "crops", "attributes"].map((h) => el("th", { text: h ? t(`col.${h}`) : "" })))),
     el("tbody", {}, ...rows.flat()))));
-  out.push(el("p", { class: "muted small" }, ...bi("انقر على مسار لرؤية لقطاته وسبب اختيارها وسماته.", "Click a track to see its crops, why they were picked, and its attributes.")));
+  out.push(el("p", { class: "muted small", text: t("rectrace.clickTrack") }));
   return out;
 }
 
@@ -756,7 +827,7 @@ function recordingRow(r) {
   }
   const status = document.createElement("td");
   status.className = `state state-${r.status}`;
-  status.textContent = STATUS[r.status] || r.status;
+  status.textContent = word("recordingStatus", r.status);
   if (r.status === "indexing") {
     const bar = document.createElement("progress");
     bar.max = 1;
@@ -768,29 +839,25 @@ function recordingRow(r) {
   tracks.textContent = r.track_count ?? "";
   const actions = document.createElement("td");
   actions.className = "row-actions";
-  const reindex = document.createElement("button");
-  reindex.type = "button";
-  reindex.textContent = "إعادة فهرسة · reindex";
-  reindex.disabled = r.status === "queued" || r.status === "indexing";
+  const reindex = el("button", { type: "button", text: t("recordings.reindex"), disabled: r.status === "queued" || r.status === "indexing" });
   reindex.addEventListener("click", async () => {
     await api(`/api/recordings/${r.id}/reindex?actor=${encodeURIComponent(actor())}`, { method: "POST" });
     loadRecordings();
   });
-  const del = document.createElement("button");
-  del.type = "button";
-  del.textContent = "حذف · delete";
-  del.disabled = r.status === "indexing";
+  const del = el("button", { type: "button", text: t("recordings.delete"), disabled: r.status === "indexing" });
   del.addEventListener("click", async () => {
-    if (!confirm(`حذف التسجيل وكل ما استُخرج منه؟ Delete ${r.camera_id} ${fmtTime(r.start_time)} and its index?`)) return;
+    if (!confirm(t("recordings.confirmDelete", { camera: r.camera_id, start: fmtTime(r.start_time) }))) return;
     try {
       await api(`/api/recordings/${r.id}?actor=${encodeURIComponent(actor())}`, { method: "DELETE" });
     } catch (err) {
-      alert(`خطأ · error: ${err.message}`);
+      alert(errorText(err));
     }
     loadRecordings();
   });
-  const how = el("button", { type: "button", disabled: r.status !== "indexed", onclick: () => openRecordingTrace(r.id) }, "كيف فُهرس · trace");
-  actions.append(reindex, del, how);
+  actions.append(reindex, del);
+  if (TECH) {
+    actions.append(el("button", { type: "button", disabled: r.status !== "indexed", onclick: () => openRecordingTrace(r.id), text: t("recordings.trace") }));
+  }
   row.append(status, tracks, actions);
   return row;
 }
@@ -812,30 +879,51 @@ function upload(event) {
   const status = $("#upload-status");
   bar.hidden = false;
   bar.value = 0;
-  status.textContent = "جارٍ الرفع… · uploading…";
+  status.textContent = t("upload.uploading");
   const xhr = new XMLHttpRequest();
   xhr.open("POST", "/api/recordings");
   xhr.upload.onprogress = (e) => { if (e.lengthComputable) bar.value = e.loaded / e.total; };
   xhr.onload = () => {
     bar.hidden = true;
     if (xhr.status === 201) {
-      status.textContent = "تم الرفع وأُضيف إلى قائمة الفهرسة · uploaded and queued for indexing";
+      status.textContent = t("upload.done");
       form.reset();
     } else {
       let detail = xhr.responseText;
       try { detail = JSON.parse(xhr.responseText).detail; } catch { /* plain text */ }
-      status.textContent = `خطأ · error: ${detail}`;
+      status.textContent = errorText({ message: typeof detail === "string" ? detail : JSON.stringify(detail) });
     }
     loadRecordings();
   };
   xhr.onerror = () => {
     bar.hidden = true;
-    status.textContent = "خطأ في الاتصال · network error";
+    status.textContent = t("upload.networkError");
   };
   xhr.send(data);
 }
 
 // Audit log
+
+function auditSummary(e) {
+  const d = e.details;
+  const parts = [];
+  if (e.action === "search") {
+    parts.push(t("audit.searched", { query: isolate(d.query), outcome: d.error ? t("audit.error", { error: isolate(d.error) }) : t("audit.results", { n: d.result_count }) }));
+    if (d.mode) parts.push(word("modeName", d.mode));
+    if (d.cameras?.length) parts.push(t("audit.cameras", { cameras: list(d.cameras) }));
+  } else if (e.action === "confirm" || e.action === "reject") {
+    parts.push(d.track_key, t("audit.query", { query: isolate(d.query) }));
+    if (d.note) parts.push(d.note);
+  } else if (e.action === "check") {
+    parts.push(word("jobStatus", d.status), t("audit.checked", {
+      confirmed: d.confirmed ?? 0, unsure: d.unsure ?? 0, rejected: d.rejected ?? 0,
+    }), t("unit.ms", { ms: d.took_ms ?? "?" }));
+  } else {
+    parts.push(...[d.camera_id, d.file, d.recording_id].filter(Boolean));
+  }
+  if (d.case_id) parts.push(t("audit.case", { id: d.case_id }));
+  return parts.join(t("list.join"));
+}
 
 async function loadAudit() {
   let entries;
@@ -846,51 +934,40 @@ async function loadAudit() {
   }
   $("#audit-body").replaceChildren(...entries.map((e) => {
     const row = document.createElement("tr");
-    const d = e.details;
-    let summary;
-    if (e.action === "search") {
-      summary = `«${d.query}» → ${d.error ? `error: ${d.error}` : `${d.result_count} results`}`;
-      if (d.mode) summary += ` · ${d.mode}`;
-      if (d.cameras?.length) summary += ` · cameras ${d.cameras.join(", ")}`;
-    } else if (e.action === "confirm" || e.action === "reject") {
-      summary = `${d.track_key} · «${d.query}»${d.note ? ` · ${d.note}` : ""}`;
-    } else if (e.action === "check") {
-      summary = `${d.status} · ${d.confirmed ?? 0} confirmed, ${d.unsure ?? 0} unsure, ${d.rejected ?? 0} rejected · ${d.took_ms ?? "?"} ms`;
-    } else {
-      summary = [d.camera_id, d.file, d.recording_id].filter(Boolean).join(" · ");
-    }
-    if (d.case_id) summary += ` · case ${d.case_id}`;
-    for (const value of [e.id, fmtTime(e.at.replace("+00:00", "")), e.actor, ACTIONS[e.action] || e.action, summary]) {
+    for (const value of [e.id, fmtTime(e.at.replace("+00:00", "")), e.actor, word("action", e.action)]) {
       const td = document.createElement("td");
       td.textContent = value;
       td.dir = "auto";
       row.append(td);
     }
-    if ((e.action === "search" || e.action === "check") && e.search_id && !d.error) {
-      row.lastChild.append(" ", el("button", { type: "button", class: "link", onclick: () => openTrace(e.search_id) }, "تتبع · trace"));
+    const summary = el("td", { text: auditSummary(e) });
+    if (TECH && (e.action === "search" || e.action === "check") && e.search_id && !e.details.error) {
+      summary.append(" ", el("button", { type: "button", class: "link", onclick: () => openTrace(e.search_id), text: t("audit.trace") }));
     }
+    row.append(summary);
     return row;
   }));
 }
 
-// Health
+// Health, on the Under the hood tab
 
 async function checkHealth() {
   const badge = $("#health");
+  if (!badge) return;
   try {
     const h = await api("/api/health");
     const ok = h.inference?.status === "ok" && h.qdrant === "ok";
     const llm = h.query_model?.status === "ok";
-    badge.textContent = ok ? (llm ? "● متصل · ready" : "● متصل، بدون نموذج الاستعلام · ready, no query model") : "● غير جاهز · not ready";
+    badge.textContent = t(ok ? (llm ? "health.ready" : "health.noQueryModel") : "health.notReady");
     badge.dataset.ok = String(ok);
     badge.title = JSON.stringify(h);
   } catch {
-    badge.textContent = "● غير متصل · offline";
+    badge.textContent = t("health.offline");
     badge.dataset.ok = "false";
   }
 }
 
-// Links such as #trace=<search id> open a stored trace, and #recording=<id> a recording trace.
+// Links such as /tech#trace=<search id> open a stored trace, and /tech#recording=<id> a recording trace.
 function route() {
   const [key, value] = location.hash.slice(1).split("=");
   if (key === "trace" && value) openTrace(decodeURIComponent(value));
@@ -899,23 +976,40 @@ function route() {
 
 // Boot
 
+// Trace links made before the views were split point at /; they belong to the technical view.
+if (!TECH && /^#(trace|recording)=/.test(location.hash)) location.replace(`/tech${location.hash}`);
+
+await initLanguage();
+if (!TECH) for (const node of document.querySelectorAll("[data-tech]")) node.remove();
+translatePage();
+const otherLanguage = currentLanguage() === "ar" ? "en" : "ar";
+$("#lang-switch").lang = otherLanguage;
+$("#lang-switch").addEventListener("click", () => {
+  remember("avs.case", $("#case-id").value.trim(), "sessionStorage"); // keep the case number across the reload
+  switchLanguage(otherLanguage);
+});
+document.documentElement.dataset.ready = "";
+
 $("#actor").value = recall("avs.actor");
 $("#actor").addEventListener("change", (e) => remember("avs.actor", e.target.value.trim()));
+$("#case-id").value = recall("avs.case", "sessionStorage");
+remember("avs.case", "", "sessionStorage");
 for (const button of document.querySelectorAll("[data-tab]")) {
   button.addEventListener("click", () => showTab(button.dataset.tab));
-}
-for (const button of document.querySelectorAll("[data-hood]")) {
-  button.addEventListener("click", () => showHood(button.dataset.hood));
 }
 $("#search-form").addEventListener("submit", runSearch);
 $("#upload-form").addEventListener("submit", upload);
 $("#audit-refresh").addEventListener("click", loadAudit);
-$("#trace-form").addEventListener("submit", runTrace);
-$("#trace-open").addEventListener("submit", (e) => { e.preventDefault(); const id = $("#trace-id").value.trim(); if (id) openTrace(id); });
-$("#rectrace-form").addEventListener("submit", runRecordingTrace);
-window.addEventListener("hashchange", route);
 renderExamples();
 loadCameras();
-checkHealth();
-setInterval(checkHealth, 15000);
-route();
+if (TECH) {
+  for (const button of document.querySelectorAll("[data-hood]")) {
+    button.addEventListener("click", () => showHood(button.dataset.hood));
+  }
+  $("#trace-form").addEventListener("submit", runTrace);
+  $("#trace-open").addEventListener("submit", (e) => { e.preventDefault(); const id = $("#trace-id").value.trim(); if (id) openTrace(id); });
+  $("#rectrace-form").addEventListener("submit", runRecordingTrace);
+  window.addEventListener("hashchange", route);
+  setInterval(() => { if (!$("#tab-hood").hidden) checkHealth(); }, 15000);
+  route();
+}

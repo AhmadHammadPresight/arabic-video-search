@@ -13,6 +13,10 @@
   font-family: "SF Arabic", "Geeza Pro", "Noto Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif;
   color-scheme: light dark;
 }
+:root[lang="en"] { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+
+/* The page stays blank until app.js has filled in the strings of the current language. */
+:root:not([data-ready]) body { visibility: hidden; }
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -41,21 +45,17 @@ body {
   line-height: 1.5;
 }
 
-.en {
-  /* English beside Arabic: isolate it so its punctuation stays on the right side. */
-  unicode-bidi: isolate;
-  direction: ltr;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  color: var(--muted);
-  font-size: 0.82em;
-  font-weight: normal;
-  margin-inline-start: 0.35em;
-}
-
 h1, h2 { margin: 0; }
 h1 { font-size: 1.35rem; }
 h2 { font-size: 1.1rem; margin-block: 1.25rem 0.75rem; }
-.brand p { margin: 0; }
+.brand { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.view-badge {
+  font-size: 0.8rem;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 0.05rem 0.6rem;
+}
 .muted { color: var(--muted); }
 
 .topbar {
@@ -72,7 +72,9 @@ h2 { font-size: 1.1rem; margin-block: 1.25rem 0.75rem; }
 .session { display: flex; flex-wrap: wrap; align-items: end; gap: 0.75rem; }
 .session label { display: grid; gap: 0.2rem; font-size: 0.9rem; }
 
-.health { font-size: 0.85rem; color: var(--muted); }
+.lang-switch { align-self: end; }
+
+.health { font-size: 0.85rem; color: var(--muted); margin-block: 0 0.5rem; }
 .health[data-ok="true"] { color: var(--confirm); }
 .health[data-ok="false"] { color: var(--reject); }
 
@@ -99,7 +101,6 @@ button {
 button:hover:not(:disabled) { border-color: var(--accent); }
 button:disabled { opacity: 0.5; cursor: default; }
 button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
-button.primary .en { color: inherit; opacity: 0.85; }
 
 .tabs {
   display: flex;
@@ -274,6 +275,8 @@ select { background: var(--bg); border: 1px solid var(--line); border-radius: 8p
 .kv { display: grid; grid-template-columns: max-content minmax(0, auto); justify-content: start; gap: 0.15rem 0.75rem; margin: 0; font-size: 0.88rem; }
 .kv dt { color: var(--muted); }
 .kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; text-align: start; }
+/* Values keep their own direction but line up with the page's side. */
+:root[dir="rtl"] .kv dd { text-align: right; }
 .stage ul { margin: 0.2rem 0; padding-inline-start: 1.2rem; }
 pre.json {
   background: var(--bg);
