@@ -153,6 +153,8 @@
 
   "gender.male": "man",
   "gender.female": "woman",
+  "child.male": "boy",
+  "child.female": "girl",
   "age.child": "child",
   "age.adult": "adult",
   "age.elderly": "elderly",

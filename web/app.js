@@ -105,6 +105,18 @@ function errorText(err) {
   return t("error.generic", { message: isolate(err.message ?? err) });
 }
 
+// Places of the starter footage are stored as "Arabic · English"; show the half in the page language.
+// Any other place (such as one typed at upload) is shown as it was entered.
+const ARABIC_LETTER = /[\u0600-\u06ff]/;
+
+function placeText(place) {
+  const parts = String(place ?? "").split(" · ");
+  if (parts.length !== 2) return place;
+  const arabic = parts.map((part) => ARABIC_LETTER.test(part));
+  if (arabic[0] === arabic[1]) return place;
+  return parts[arabic.indexOf(currentLanguage() === "ar")];
+}
+
 // Words for the fixed description vocabulary (avs/fields.py) in the current language.
 
 function word(group, value) {
@@ -209,7 +221,7 @@ async function loadCameras() {
     input.value = cam.camera_id;
     input.checked = checked.has(cam.camera_id);
     const text = document.createElement("span");
-    text.textContent = t("filters.camera", { camera: cam.camera_id, places: list(cam.places) });
+    text.textContent = t("filters.camera", { camera: cam.camera_id, places: list(cam.places.map(placeText)) });
     label.append(input, text);
     return label;
   }));
@@ -271,7 +283,7 @@ async function runSearch(event) {
     $("#results").replaceChildren(...cards.values());
     if (data.check && data.check.status !== "skipped") {
       searchCheck = data.search_id;
-      followCheck(data.search_id, cards, token);
+      followCheck(data.search_id, cards, token, checkLabels(data.check.details, data.parsed));
     }
   } catch (err) {
     status.textContent = errorText(err);
@@ -292,7 +304,8 @@ function fieldChips(fields) {
     const thing = phrase(item.colours, item.object);
     chips.push(fields.subject === "bag" ? thing : t("parsed.carries", { thing }));
   }
-  for (const other of fields.other) chips.push(t("parsed.other", { text: isolate(other) }));
+  // Other details are the model's own English words, so only the technical view shows them.
+  if (TECH) for (const other of fields.other) chips.push(t("parsed.other", { text: isolate(other) }));
   return chips.map((text) => el("span", { class: "chip field-chip", text }));
 }
 
@@ -301,9 +314,12 @@ function renderParsed(data) {
   box.replaceChildren(
     el("div", { class: "parsed-head", text: t("parsed.title") }),
     el("div", { class: "parsed-chips" }, ...fieldChips(data.parsed)),
-    el("div", { class: "parsed-english" }, t("parsed.english"), " ", el("span", { dir: "ltr", lang: "en", text: `“${data.parsed.english}”` })),
   );
-  if (TECH) box.append(el("button", { type: "button", class: "link", onclick: () => openTrace(data.search_id), text: t("parsed.how") }));
+  // The English rewrite the embedder reads, and the way into the trace, are for the technical view.
+  if (TECH) {
+    box.append(el("div", { class: "parsed-english" }, t("parsed.english"), " ", el("span", { dir: "ltr", lang: "en", text: `“${data.parsed.english}”` })),
+      el("button", { type: "button", class: "link", onclick: () => openTrace(data.search_id), text: t("parsed.how") }));
+  }
   box.hidden = false;
 }
 
@@ -320,17 +336,37 @@ function answerChip(detail, answer) {
   return el("span", { class: `why-chip answer-${answer}`, text: t("check.answer", { detail: isolate(detail), answer: word("answer", answer) }) });
 }
 
-function setCheck(card, verdict) {
+// The details the vision model is asked about, in the page language, keyed by the English text the
+// model answers to. Free-text details (field "other") have no words of their own and are left out.
+function checkLabels(details, fields) {
+  const labels = new Map();
+  let carried = 0;
+  for (const d of details || []) {
+    let label = null;
+    if (d.field === "gender" && fields.age_band === "child") label = word("child", fields.gender);
+    else if (d.field === "carried") label = whyLabel({ field: "carried" }, fields, carried++);
+    else if (d.field !== "other") label = whyLabel({ field: d.field }, fields);
+    if (label) labels.set(d.text, label);
+  }
+  return labels;
+}
+
+// The technical view shows exactly what the model was asked and its own reasoning; the business
+// view shows the verdict and the answers for the details the page has words for.
+function setCheck(card, verdict, labels) {
   const box = $(".check", card);
   if (!verdict) return;
   const label = word("verdict", verdict.verdict);
-  const answers = Object.entries(verdict.answers || {}).map(([detail, answer]) => answerChip(detail, answer));
+  const answers = Object.entries(verdict.answers || {})
+    .filter(([detail]) => TECH || labels.has(detail))
+    .map(([detail, answer]) => answerChip(TECH ? detail : labels.get(detail), answer));
+  const note = TECH && verdict.note ? [el("div", { class: "muted small", dir: "auto", text: verdict.note })] : [];
   box.replaceChildren(el("div", { class: `verdict-badge verdict-${verdict.verdict}`, text: label }),
-    el("div", { class: "answers" }, ...answers), ...(verdict.note ? [el("div", { class: "muted small", dir: "auto", text: verdict.note })] : []));
+    el("div", { class: "answers" }, ...answers), ...note);
   card.dataset.check = verdict.verdict;
 }
 
-async function followCheck(searchId, cards, token) {
+async function followCheck(searchId, cards, token, labels) {
   const status = $("#check-status");
   for (;;) {
     if (token !== searchToken) return;
@@ -344,7 +380,7 @@ async function followCheck(searchId, cards, token) {
     if (CHECK_FINISHED.includes(job.status) && searchCheck === searchId) searchCheck = null;
     for (const [key, verdict] of Object.entries(job.verdicts || {})) {
       const card = cards.get(key);
-      if (card && card.dataset.check !== verdict.verdict) setCheck(card, verdict);
+      if (card && card.dataset.check !== verdict.verdict) setCheck(card, verdict, labels);
     }
     status.textContent = t("check.progress", { done: job.done, total: job.total });
     if (job.status === "done") {
@@ -391,7 +427,7 @@ function resultCard(result, searchId, checking, fields) {
   $(".score", card).textContent = result.similarity == null
     ? t("card.score", { score: result.score.toFixed(3) })
     : t("card.scoreSimilarity", { score: result.score.toFixed(2), similarity: result.similarity.toFixed(3) });
-  $(".place", card).textContent = result.place;
+  $(".place", card).textContent = placeText(result.place);
   $(".time", card).textContent = `${fmtTime(result.time)}  (${fmtTime(result.seen_from).slice(11)} – ${fmtTime(result.seen_to).slice(11)})`;
   if (result.why) {
     const why = $(".why", card);
@@ -757,7 +793,7 @@ function recordingTrace(trace) {
   const out = [];
   out.push(el("div", { class: "cards-row" },
     el("article", { class: "stage" }, el("h4", { text: t("rectrace.recordingCard") }), kv([
-      ["camera", rec.camera_id], ["place", rec.place], ["startLocal", fmtTime(rec.start_time)], ["length", fmtDuration(rec.duration_s)],
+      ["camera", rec.camera_id], ["place", placeText(rec.place)], ["startLocal", fmtTime(rec.start_time)], ["length", fmtDuration(rec.duration_s)],
       ["size", `${rec.width}x${rec.height}`], ["video", stats.video ? t("unit.fps", { fps: stats.video.fps?.toFixed(1) }) : null],
       ["file", rec.original_name]])),
     el("article", { class: "stage" }, el("h4", { text: t("rectrace.lastIndexing") }), stats.frames != null ? kv([
@@ -818,7 +854,7 @@ async function loadRecordings() {
 
 function recordingRow(r) {
   const row = document.createElement("tr");
-  const cells = [r.camera_id, r.place, fmtTime(r.start_time), fmtDuration(r.duration_s)];
+  const cells = [r.camera_id, placeText(r.place), fmtTime(r.start_time), fmtDuration(r.duration_s)];
   for (const value of cells) {
     const td = document.createElement("td");
     td.textContent = value;

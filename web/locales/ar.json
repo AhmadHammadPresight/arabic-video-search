@@ -167,6 +167,8 @@
 
   "gender.male": "رجل",
   "gender.female": "امرأة",
+  "child.male": "ولد",
+  "child.female": "بنت",
   "age.child": "طفل",
   "age.adult": "بالغ",
   "age.elderly": "كبير السن",

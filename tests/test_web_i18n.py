@@ -81,6 +81,7 @@ def test_the_vocabulary_has_words_in_both_languages():
         + [f"hairColour.{c}" for c in fields.HAIR_COLOURS]
         + [f"hairLength.{h}" for h in fields.HAIR_LENGTHS]
         + [f"gender.{g}" for g in fields.GENDERS]
+        + [f"child.{g}" for g in fields.GENDERS]
         + [f"age.{a}" for a in fields.AGE_BANDS]
         + [f"stage.{s}" for s in STAGES]
         + [f"action.{a}" for a in ("search", "confirm", "reject", "upload", "reindex", "delete", "check")]

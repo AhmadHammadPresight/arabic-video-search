@@ -87,9 +87,9 @@ The choice is remembered in the browser, and every string is in `web/locales/ar.
 
 - **Search** (البحث): type a description in Arabic (formal or dialect), English or a mix, optionally tick cameras and set a time window.
   The hybrid mode (هجين) is the default; in the technical view option A (الخيار أ) is one click away.
-  - In the hybrid mode a panel shows what the query model understood: the fields, such as woman and grey jacket, and the English rewrite.
+  - In the hybrid mode a panel shows what the query model understood: the fields, such as woman and grey jacket, and, in the technical view, the English rewrite.
   - Each result shows the best crop, plays the clip at its moment, lists camera, place, time span and score, and shows why it matched, field by field: ✓ match, ≈ close (beige for brown), ? not known for this track, – not seen, ✗ different.
-  - A few seconds later the vision model's double-check fills in on the top results: confirmed results move up, rejected ones move down with the model's reason, and unsure ones stay put.
+  - A few seconds later the vision model's double-check fills in on the top results: confirmed results move up, rejected ones move down (the technical view also shows the model's reason), and unsure ones stay put.
     Starting a new search stops the previous search's check.
   - Confirm (تأكيد) or reject (رفض) each result; the officer always decides.
 - **Recordings** (التسجيلات): upload a video with its camera ID, place and recording start time (the camera's local time).
