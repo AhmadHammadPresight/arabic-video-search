@@ -14,7 +14,7 @@ const TECH = location.pathname.replace(/\/+$/, "") === "/tech";
 // inputs, not page text, so they stay the same in every language.
 const EXAMPLES = [
   "امرأة ترتدي سترة حمراء",
-  "شخص يرتدي سترة حمراء بقلنسوة",
+  "شخص يرتدي سترة حمراء",
   "زلمة لابس بنطلون بني",
   "رجّال يسحب شنطة سفر",
   "طفلة ترتدي قميصاً أبيض وبنطال جينز",
