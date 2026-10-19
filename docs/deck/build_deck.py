@@ -942,7 +942,7 @@ def slide_demo(deck: Deck):
         notes="""
 MVP scope (report section 6): upload about 10 short public clips, Arabic search across formal, Jordanian and Gulf phrasing, a results grid with clip, camera, place, time and why it matched, confirm or reject, a simple next-sighting timeline, and an audit log.
 Out of scope: live streams (D7), face recognition (D5), city scale, vehicles and voice.
-Where it runs (D3): one local computer. App services in Docker; the models run directly on the computer, because Docker containers there cannot use its GPU.
+Where it runs (D3): one local computer, with no containers. The app and the AI models all run as native processes, started by plain scripts, so the models can use the computer's GPU.
 Footage (D2, D7): recordings from public datasets, no live cameras: MEVA (Kitware and IARPA, CC BY 4.0, https://mevadata.org/resources/MEVA-data-license.txt), NVIDIA PhysicalAI-SmartSpaces synthetic store scenes (CC BY 4.0), and a CAVIAR left-bag clip (Creative Commons BY-SA). Clips are trimmed; attribution is shown in the demo.
 The screen on the right is an illustration from the plan's demo mock-up, not a screenshot.
 """,
@@ -988,7 +988,7 @@ The screen on the right is an illustration from the plan's demo mock-up, not a s
     box(
         s, 0.6, 6.25, 12.13, 0.65, fill=TEAL_LIGHT, radius=0.08,
         paras=[P([R("Runs on one computer: ", bold=True, color=NAVY),
-                  R("the app in Docker, the AI models on the computer itself. Recorded clips from public datasets, no live cameras, and no cloud AI.")], size=13.5, space_after=0)],
+                  R("the app and the AI models all run as native processes, with no containers. Recorded clips from public datasets, no live cameras, and no cloud AI.")], size=13.5, space_after=0)],
         anchor="middle", pad=0.2,
     )
     text(
