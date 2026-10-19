@@ -9,6 +9,7 @@ Phase 2 is the hybrid: a local language model reads the query into fields and a 
 Option A stays selectable, so the two can be compared on the same index.
 Everything runs on one Apple Silicon Mac, and nothing leaves it once setup has downloaded the models and footage.
 The choices behind it are in [docs/decisions.md](docs/decisions.md).
+To set up and present the demo on another Mac, follow [docs/DEMO-GUIDE.md](docs/DEMO-GUIDE.md).
 
 ## What runs where
 
@@ -305,7 +306,7 @@ The end-to-end test cuts 20 seconds from the cafe clip, uploads and indexes it t
 - `footage/starter.json`, `eval/queries.yaml`, `eval/attributes.yaml`: the footage list, the test queries with their expected fields, and the attribute labels.
 - `scripts/`: setup, start, stop, fetch, index, re-index and evaluate.
 - `tests/`: unit tests and the end-to-end smoke test.
-- `docs/`: the decisions log, and the use-case deck in `docs/deck/`.
+- `docs/`: the decisions log, the demo guide, and the use-case deck in `docs/deck/`.
 
 ## Adding ground truth
 
