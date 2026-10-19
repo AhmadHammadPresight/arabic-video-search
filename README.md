@@ -10,6 +10,7 @@ Option A stays selectable, so the two can be compared on the same index.
 Everything runs on one Apple Silicon Mac, and nothing leaves it once setup has downloaded the models and footage.
 The choices behind it are in [docs/decisions.md](docs/decisions.md).
 To set up and present the demo on another Mac, follow [docs/DEMO-GUIDE.md](docs/DEMO-GUIDE.md).
+It sets up from a data zip that holds the starter clips and the finished index, so that Mac skips the footage download and the indexing.
 
 ## What runs where
 

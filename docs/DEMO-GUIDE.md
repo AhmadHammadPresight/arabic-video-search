@@ -11,53 +11,89 @@ In one sentence: you type a description of a person or a bag in Arabic, and the 
 - A Mac with Apple silicon (M1 or later) and at least 48 GB of memory.
   It was tested on an M4 Pro with 48 GB on macOS 26.6; a similar macOS version is best.
   While it runs, the app uses about 30 GB of memory, so quit other heavy apps before the demo.
-- About 40 GB of free disk space; a full setup used 37.1 GB.
+- About 40 GB of free disk space; a setup from the data zip used about 35 GB.
   Most of it is AI models: about 10 GB in the Hugging Face cache (`~/.cache/huggingface`) and 18 GB in Ollama's model store (`~/.ollama/models`).
-  The rest is in the project's own `data/` folder.
-- Internet access once, for setup and the footage download, about 31 GB in all.
+  The rest is the project folder (about 5 GB once the data zip is unpacked) and the zip itself (1.9 GB), which you can delete after unpacking.
+- Internet access once, for setup, about 29 GB.
   After that the demo runs fully offline, and nothing leaves the Mac.
-- Access to the private Git repository, and the clone URL you were given.
+- The data zip `avs-demo-data.zip` (1.87 GB), shared with you on Teams.
+  It holds the 11 demo clips and the finished search index, so you skip the footage download and about 45 minutes of indexing.
+  If you do not have it, follow "Without the data zip" below instead.
 - These tools, installed before you start:
   - Apple's Command Line Tools, for `git`: run `xcode-select --install` if `git --version` asks for them.
   - [Homebrew](https://brew.sh).
     `scripts/setup.sh` uses it to install FFmpeg and uv if they are missing.
   - A web browser, such as Chrome or Safari.
 
-Everything else the scripts use (`curl`, `shasum`, `tar`, `lsof`) is part of macOS.
+Everything else the scripts use (`curl`, `shasum`, `tar`, `unzip`, `lsof`) is part of macOS.
 You do not need to install Python, Docker, Ollama or Qdrant yourself: setup installs a pinned Python 3.12 environment and pinned copies of Qdrant and Ollama inside the project folder.
 
 ## The day before
 
-Allow about an hour and a half, most of it waiting for downloads and indexing.
+Allow about 45 minutes, nearly all of it waiting for setup to download the AI models.
 The times below were measured on the test Mac with downloads at about 12 MB/s.
 
-Open Terminal and run these from the folder you want the project in:
+1. Download `avs-demo-data.zip` from Teams.
+2. Open Terminal and run these from the folder you want the project in:
+
+   ```sh
+   git clone https://github.com/AhmadHammadPresight/arabic-video-search.git
+   cd arabic-video-search
+   scripts/setup.sh
+   ```
+
+   The clone takes a few seconds.
+   `scripts/setup.sh` (about 40 minutes) installs FFmpeg and uv if needed, builds the Python environment, downloads Qdrant and Ollama, then the AI models (about 29 GB).
+   It ends with "setup done. Next: scripts/fetch_footage.sh, then scripts/start.sh".
+   Ignore that hint: the data zip replaces `scripts/fetch_footage.sh` and the indexing.
+3. Move `avs-demo-data.zip` into the `arabic-video-search` folder, next to `README.md`, for example with Finder.
+4. Back in Terminal, still in the project folder, unpack it:
+
+   ```sh
+   unzip avs-demo-data.zip
+   ```
+
+   It takes about 10 seconds and lists the files as it unpacks them into the `data/` folder.
+   Unpack it with this command, in Terminal, inside the project folder.
+   Do not double-click the zip in Finder: that unpacks it into a separate folder, where the app does not look.
+   If `unzip` asks whether to replace a file, the project folder already has demo data in it; answer `N` (no to all), and ask for help.
+   Once it has finished, you can delete `avs-demo-data.zip`.
+5. Start the app:
+
+   ```sh
+   scripts/start.sh
+   ```
+
+   It takes about 75 seconds the first time, and up to 3 minutes if the Mac is short of memory.
+   It ends with "Open http://127.0.0.1:8470".
+6. Open http://127.0.0.1:8470, go to the Recordings tab (التسجيلات), and check that there are 11 recordings and every row says ready (جاهز).
+   Searches only cover recordings that are ready.
+
+Run every script from the project folder, one after the other.
+
+Then do a practice run of the demo script below, and stop everything with `scripts/stop.sh`.
+The index is kept in the `data/` folder, so you never need to set it up again.
+
+### Without the data zip
+
+If you have no data zip, download the clips and index them yourself.
+This adds about 50 minutes, and about 2 GB more internet download.
+After `scripts/setup.sh`, skip steps 3 and 4 above, and run these instead, from the project folder:
 
 ```sh
-git clone <repository URL> arabic-video-search
-cd arabic-video-search
-scripts/setup.sh
 scripts/fetch_footage.sh
 scripts/start.sh
 scripts/index_starter.sh
 ```
 
-Run every script from the project folder, one after the other.
-
-1. `scripts/setup.sh` (about 40 minutes): installs FFmpeg and uv if needed, builds the Python environment, downloads Qdrant and Ollama, then the AI models (about 29 GB).
-   It ends with "setup done".
-2. `scripts/fetch_footage.sh` (about 5 minutes): downloads the 11 public starter clips and trims them.
-3. `scripts/start.sh` (about 75 seconds the first time): starts the five background services.
+1. `scripts/fetch_footage.sh` (about 5 minutes): downloads the 11 public starter clips and trims them.
+2. `scripts/start.sh` (about 75 seconds the first time): starts the five background services.
    It ends with "Open http://127.0.0.1:8470".
-4. `scripts/index_starter.sh` (about 45 minutes): uploads the 11 clips and waits while each one is analysed.
+3. `scripts/index_starter.sh` (about 45 minutes): uploads the 11 clips and waits while each one is analysed.
    It shows a line such as `indexed 7/11, now G331 40%`.
 
 Indexing has finished when `scripts/index_starter.sh` prints `indexed 11/11` and then `finished in ...s`, and returns to the prompt.
-You can also check in the app: open http://127.0.0.1:8470, go to the Recordings tab (التسجيلات), and every row should say ready (جاهز).
-Searches only cover recordings that are ready.
-
-Then do a practice run of the demo script below, and stop everything with `scripts/stop.sh`.
-The index is kept in the `data/` folder, so you never need to index again.
+Then check the Recordings tab as in step 6 above.
 
 ## Demo day
 
@@ -159,8 +195,14 @@ If it is another program, quit it, or run the app on other ports as in the READM
 
 ### A download stopped part-way
 
-If `scripts/setup.sh` or `scripts/fetch_footage.sh` stops with a network error, run the same script again.
+If `scripts/setup.sh` or `scripts/fetch_footage.sh` stops with a network error, such as `curl: (56) Recv failure: Connection reset by peer`, run the same script again.
 Both are safe to repeat: they keep what has already arrived and continue from there.
+
+### Fewer than 11 recordings, or none
+
+If the Recordings tab is empty or shows fewer than 11 recordings, the data zip was not unpacked into the project folder.
+Run `scripts/stop.sh`, then run `unzip avs-demo-data.zip` in Terminal from the project folder, then `scripts/start.sh`.
+The project folder is the one that holds `README.md` and the `scripts` folder; `ls data` there should list `avs.db`, `crops`, `playback`, `qdrant` and `uploads`.
 
 ### Indexing is still running, or was interrupted
 
