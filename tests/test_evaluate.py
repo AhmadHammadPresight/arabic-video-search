@@ -48,7 +48,7 @@ def test_summary_skips_no_match_queries():
 
 QUERIES = __import__("avs.settings", fromlist=["REPO_ROOT"]).REPO_ROOT / "eval" / "queries.yaml"
 # The project owner's own queries, which must stay exactly as written.
-CAPTAIN = {
+OWNER = {
     "c01": "امراة تلبس جاكيت سكني او ابيض",
     "c02": "معهها شنطة بنية او لونها بيج",
     "c05": "woman wearing red jacket",
@@ -66,7 +66,7 @@ def test_seeded_query_file_is_consistent():
     assert {"formal", "jordanian", "gulf", "mixed", "english"} == {q["register"] for q in queries}
     for name, anchors in targets.items():
         assert anchors, name
-    assert {q["id"]: q["text"] for q in queries if q.get("source") == "captain"} == CAPTAIN
+    assert {q["id"]: q["text"] for q in queries if q.get("source") == "owner"} == OWNER
     assert sum(q.get("added") == "phase2" for q in queries) == len(queries) - 48
 
 
