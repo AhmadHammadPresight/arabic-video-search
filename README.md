@@ -24,7 +24,7 @@ All five processes run natively on macOS and listen on 127.0.0.1 only.
 | Qdrant | Vector index of crop embeddings with camera, place, time and attribute payloads | 6433 |
 
 SQLite (`data/avs.db`) holds the recordings, the job queue, the tracks with their attributes, the search traces and the append-only audit log.
-Docker is not used: containers on macOS get no Apple GPU, and the captain asked for plain scripts instead (see D3 in the decisions file).
+Docker is not used: containers on macOS get no Apple GPU, and the project owner asked for plain scripts instead (see D3 in the decisions file).
 
 ## Requirements
 
@@ -166,7 +166,7 @@ The candidates follow the phase 2 go-ahead, at the same 4-bit quantisation (Q4_K
   Speed does: Gemma 4 and Qwen3.6 are mixture-of-experts models that use about 4B and 3B parameters per token, while Fanar 2 and Jais 3 are dense and use all 27B to 35B.
 - Each model's run stops at the first query that takes longer than 20 s (four times the 5 s target for a whole search), and the model is recorded as too slow with what it measured.
 - Jais 3 32B loads and runs in Ollama and its fields were right (99.9% on the 61 queries it finished), but it took 37 to 268 s per query, a median of 64 s, so the run was stopped there; under the 20 s limit its first query does not finish.
-  At the captain's request it is deferred to a later phase rather than tuned further.
+  At the project owner's request it is deferred to a later phase rather than tuned further.
 - Fanar 2 27B as published does not load in Ollama 0.40.6: its built-in chat template wraps the tool-calling instructions in `{% raw %}`, which the template engine rejects ("Unknown statement: raw").
   The text inside has no template syntax, so `python -m avs.tools.patch_gguf_template` writes a copy of the GGUF with the two tags replaced by template comments of the same length, which produce exactly the same prompt; that copy was measured.
   To repeat it: find the published file with `ollama show --modelfile <model>`, patch it, import the copy with `ollama create` and the published template, and pass `--models "Fanar 2 27B=<name of the copy>"`.
@@ -203,7 +203,7 @@ It costs about 4 seconds per track: indexing the 11 starter clips (486 tracks) t
 The hybrid is scored twice: its first ranking, and the ranking after the double-check.
 
 The set has 113 queries.
-The first 48 are the phase 1 set: the captain's own queries for the bus waiting room (kept verbatim), formal, Jordanian and Gulf rewrites, English originals for comparison, queries for the three stories on the other cameras, and one query nobody matches.
+The first 48 are the phase 1 set: the project owner's own queries for the bus waiting room (kept verbatim), formal, Jordanian and Gulf rewrites, English originals for comparison, queries for the three stories on the other cameras, and one query nobody matches.
 Phase 2 added 65: more formal, Jordanian and Gulf phrasings, a new mixed Arabic-English register, seven new targets on the school and store cameras, and two more queries nobody matches (Gulf and Levantine dress).
 Each query uses the camera and time filter an officer would set, and every matching person or bag inside that scope was marked by eye from contact sheets of the indexed tracks, not from search results.
 Precision at 5 cannot exceed the number of correct tracks divided by 5, so it is capped for targets seen in fewer than 5 tracks.
@@ -233,8 +233,8 @@ What phase 2 changes:
 - The hybrid finds a correct track in the first 10 for 109 of the 110 scored queries, against 100 for option A, and ranks it first for 88 (91 after the double-check) against 81.
   Of option A's 10 misses it finds 9; the one left is "رجل ماسك iPad" (a man holding an iPad), which neither mode finds.
 - The gain is largest where phase 1 was weakest, the dialects: Jordanian goes from 0.80 to 1.00 top-10 hit rate and from 0.64 to 0.91 MRR, Gulf from 0.91 to 1.00 and from 0.77 to 0.90.
-  The captain's own query that phase 1 missed, "امراة تلبس جاكيت سكني او ابيض" (c01), now has the target first, as do the Jordanian and Gulf versions of the captain's red-jacket query (c07, c08).
-  The captain's iPad query (c21) goes from a miss to 5th, and to 8th after the double-check.
+  The project owner's own query that phase 1 missed, "امراة تلبس جاكيت سكني او ابيض" (c01), now has the target first, as do the Jordanian and Gulf versions of the project owner's red-jacket query (c07, c08).
+  The project owner's iPad query (c21) goes from a miss to 5th, and to 8th after the double-check.
 - On the 63 queries added in phase 2, written after the fusion settings were fixed, the gain is smaller: 0.95 to 0.98 hit rate, 0.42 to 0.43 precision at 5 and 0.82 to 0.90 MRR after the double-check.
   Option A was already better on these than on the phase 1 set, and the settings were chosen on the phase 1 set, so this is the fairer estimate of what phase 2 adds.
 

@@ -47,7 +47,7 @@ def test_summary_skips_no_match_queries():
 
 
 QUERIES = __import__("avs.settings", fromlist=["REPO_ROOT"]).REPO_ROOT / "eval" / "queries.yaml"
-# The captain's own queries, which must stay exactly as written.
+# The project owner's own queries, which must stay exactly as written.
 CAPTAIN = {
     "c01": "امراة تلبس جاكيت سكني او ابيض",
     "c02": "معهها شنطة بنية او لونها بيج",

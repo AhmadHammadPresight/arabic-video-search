@@ -12,7 +12,7 @@
 #
 # register: formal (Modern Standard Arabic), jordanian, gulf, mixed (Arabic with English words),
 # or english (for comparison).
-# source: captain = written by the captain, verbatim; otherwise written for this set.
+# source: captain = written by the project owner, verbatim; otherwise written for this set.
 # expect: no-match = nobody in the footage matches; reported but left out of the averages.
 # fields: what the text says, in the schema of src/avs/fields.py, for scoring the query model
 # (python -m avs.tools.compare_query_models); anything not named is expected empty. A list of
@@ -410,7 +410,7 @@ windows:
   store: &store {cameras: [NV071-C0644, NV071-C0647]}
 
 queries:
-  # Captain's queries for MEVA G331, 7 March 2018 17:00-17:05 (relayed 2026-10-17), with Arabic rewrites.
+  # Project owner's queries for MEVA G331, 7 March 2018 17:00-17:05 (relayed 2026-10-17), with Arabic rewrites.
   - {id: c01, register: jordanian, source: captain, story: suspect, text: "امراة تلبس جاكيت سكني او ابيض", english: "a woman wearing a grey or white jacket", targets: [g331-0307-grey-jacket-woman, g331-0307-cream-jacket-woman], filter: *g331_0307, fields: {gender: female, upper: {garment: [jacket, coat], colours: [grey, white]}}}
   - {id: c02, register: jordanian, source: captain, story: suspect, text: "معهها شنطة بنية او لونها بيج", english: "she has a brown or beige bag", targets: [g331-0307-grey-jacket-woman, g331-0307-grey-jacket-woman-bag, g331-0307-tan-bag-woman, g331-0307-cream-bag-woman], filter: *g331_0307, fields: {gender: female, carried: [{object: [bag, handbag], colours: [brown, beige]}]}}
   - {id: c03, register: formal, story: suspect, text: "امرأة ترتدي جاكيتاً رمادياً أو أبيض وتحمل حقيبة بنية أو بيج", english: "a woman in a grey or white jacket carrying a brown or beige bag", targets: [g331-0307-grey-jacket-woman, g331-0307-grey-jacket-woman-bag], filter: *g331_0307, fields: {gender: female, upper: {garment: [jacket, coat], colours: [grey, white]}, carried: [{object: [bag, handbag], colours: [brown, beige]}]}}

@@ -1,10 +1,10 @@
 # Decisions
 
-This file records the choices behind the PoC: the seven decisions the captain settled before the build, the phased plan, and the choices made while building phases 0, 1 and 2.
+This file records the choices behind the PoC: the seven decisions the project owner settled before the build, the phased plan, and the choices made while building phases 0, 1 and 2.
 
 ## The seven settled decisions
 
-Settled between 15 and 17 October 2026; the captain's own words are quoted where they were given.
+Settled between 15 and 17 October 2026.
 
 ### D1. How Arabic text is matched to video
 
@@ -17,7 +17,7 @@ Hybrid, built in steps, with option A first as the baseline.
 
 Public starter set now (about 10 clips: MEVA, NVIDIA synthetic, CAVIAR); a small consented recording later only if the demo needs children or Arabic dress.
 
-- On 17 October 2026 the captain added: "feel free to use free cctv clips few ones".
+- On 17 October 2026 the project owner approved adding a few free CCTV clips.
   Two Pexels clips were added for neutral searches only; their people are never a suspect or part of a demo story, because the Pexels License forbids showing identifiable people in a bad light.
 - Left out: VIRAT (no part may go to third parties), Mixkit (its use policy bans AI use), and every CC BY-NC dataset.
 
@@ -66,7 +66,7 @@ Only uploaded recordings are indexed; there are no live streams.
   - a local Arabic query model chosen by a dialect test (formal, Jordanian, Gulf and mixed Arabic-English queries, scored on valid output, per-field accuracy, a native speaker's rating of the English rewrite, and speed and memory on the Mac);
   - attribute filters (clothing colours, bag type, and other fields the query model extracts);
   - the vision-model double-check of the top candidates (Qwen3-VL-8B, Apache-2.0, run locally);
-  - an "under the hood" page that traces every search and every indexed recording, added at the captain's request during phase 2;
+  - an "under the hood" page that traces every search and every indexed recording, added at the project owner's request during phase 2;
   - the next-sighting timeline across cameras moved to phase 3 at the phase 2 go-ahead.
 - Phase 3, demo-ready: the three stories rehearsed end to end, speed tuning, and the success measures checked on the demo clips.
 
@@ -114,15 +114,15 @@ Only uploaded recordings are indexed; there are no live streams.
 ## Findings to carry into phase 2
 
 - Formal Arabic queries reach the person far more often than Jordanian or Gulf phrasings of the same description (see the README baseline); dialect handling is the main gap, as the plan expected.
-- The captain's own Levantine query for the grey-jacket woman missed, while a formal rewrite of the same description ranked her first.
+- The project owner's own Levantine query for the grey-jacket woman missed, while a formal rewrite of the same description ranked her first.
 - Small held objects, such as the iPad in the waiting-room clip, are not found by crop embeddings in any language; this needs the vision-model double-check or attributes.
 - At CAVIAR's 384x288 resolution no bag was detected, so the left-bag story relies on the MEVA waiting-room clips.
-- The waiting-room clip the captain found laggy (G331, 7 March 17:00) has a constant 30 fps, monotonic timestamps and no repeated frames; the lag comes from playing a 1080p AVI with a keyframe every 2 seconds, and the PoC plays an H.264 MP4 copy instead.
+- The waiting-room clip the project owner found laggy (G331, 7 March 17:00) has a constant 30 fps, monotonic timestamps and no repeated frames; the lag comes from playing a 1080p AVI with a keyframe every 2 seconds, and the PoC plays an H.264 MP4 copy instead.
 
 ## Choices made while building phase 2
 
-The captain's go-ahead (17 October 2026): "it's ok you can start phase 2 in different branch so we save everything and not lose track", and "these changes remain local".
-During the build the captain added: "maybe add another ui or page that shows how is this done step by step so when i wrtie things i see what's going underhood?", "and also a way to introduce this in case of debugging or whatever".
+On 17 October 2026 the project owner approved starting phase 2 on a separate branch, with the changes kept local.
+During the build the project owner asked for a page that shows each search step by step, which also serves for debugging.
 
 ### The query model server: Ollama
 
@@ -158,7 +158,7 @@ During the build the captain added: "maybe add another ui or page that shows how
 - Gemma 4 26B-A4B (Apache-2.0, `gemma4:26b-a4b-it-q4_K_M`) is chosen: it is the most accurate and the fastest, so no other model could win under the rule.
   The two mixture-of-experts models (Gemma 4 with about 4B active parameters, Qwen3.6 with about 3B) answer in about 2 s; the dense ones need every one of their 27B to 35B parameters per token.
 - Jais 3 32B loads and runs in Ollama 0.40.6 and got its fields right, but took 37 to 268 s per query (median 64 s on the first 61 queries), and under the 20 s limit its first query does not finish.
-  The captain (17 October): "we can put that on hold, we might do it later or for further phases for jais".
+  On 17 October 2026 the project owner put Jais on hold for a possible later phase.
   It is deferred to a later phase with that measurement as the reason, not replaced.
 - Fanar 2 27B as published does not load in Ollama 0.40.6: its chat template uses `{% raw %}` around the tool-calling text, which the template engine in Ollama's llama.cpp runner rejects.
   Overriding the template in a Modelfile does not help, because the runner still parses the one inside the GGUF.
